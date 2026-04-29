@@ -1,9 +1,5 @@
 # EPUB Content Extractor
 
-```bash
-epub-content-extractor alice.epub -o alice.txt --debug-dir debug_alice
-```
-
 ## English
 
 `epub_content_extractor` is a planned EPUB-to-clean-text extractor designed for downstream NLP workflows. Its goal is to read an `.epub` file as a structured book, extract only meaningful document content, remove navigation and publishing noise, and produce clean linear text while preserving paragraph and chapter semantics.
@@ -58,16 +54,16 @@ The extractor should aim to provide:
 - dialogue preservation
 - punctuation preservation
 
-### Suggested API
+### Public API
 
 ```python
-from epub_content_extractor import extract_epub, extract_text
+from epub_content_extractor import extract_document, extract_text_from_epub
 
-document = extract_epub("book.epub")
-text = extract_text("book.epub")
+document = extract_document("book.epub")
+text = extract_text_from_epub("book.epub")
 ```
 
-The `extract_text()` helper is based on `extract_epub()` and returns `ExtractedDocument.to_text()`.
+The `extract_text_from_epub()` helper is based on `extract_document()` and returns `ExtractedDocument.to_text()`.
 
 ```python
 class ExtractedDocument:
@@ -88,8 +84,11 @@ epub-content-extractor book.epub -o book.txt
 Write debug information with block scores, features, and keep/drop reasons:
 
 ```bash
-epub-content-extractor book.epub -o book.txt --debug-dir debug_book
+epub-content-extractor book.epub -o book.txt --debug debug_book -d
 ```
+
+CLI writes only extracted text to stdout. Logs and errors go to stderr. Exit code `0`
+means success, `1` means expected input/data error, and `2+` means system error.
 
 ### Recommended Libraries
 
@@ -161,16 +160,16 @@ Extractor должен стремиться обеспечивать:
 - сохранение диалогов
 - сохранение пунктуации
 
-### Предлагаемый API
+### Публичный API
 
 ```python
-from epub_content_extractor import extract_epub, extract_text
+from epub_content_extractor import extract_document, extract_text_from_epub
 
-document = extract_epub("book.epub")
-text = extract_text("book.epub")
+document = extract_document("book.epub")
+text = extract_text_from_epub("book.epub")
 ```
 
-Вспомогательная функция `extract_text()` основана на `extract_epub()` и возвращает `ExtractedDocument.to_text()`.
+Вспомогательная функция `extract_text_from_epub()` основана на `extract_document()` и возвращает `ExtractedDocument.to_text()`.
 
 ```python
 class ExtractedDocument:
@@ -191,8 +190,11 @@ epub-content-extractor book.epub -o book.txt
 Debug-режим сохраняет scores, features и причины keep/drop для каждого блока:
 
 ```bash
-epub-content-extractor book.epub -o book.txt --debug-dir debug_book
+epub-content-extractor book.epub -o book.txt --debug debug_book -d
 ```
+
+CLI пишет в stdout только извлеченный текст. Логи и ошибки идут в stderr. Код `0`
+означает успех, `1` - ожидаемую ошибку входных данных, `2+` - системную ошибку.
 
 ### Рекомендуемые Библиотеки
 

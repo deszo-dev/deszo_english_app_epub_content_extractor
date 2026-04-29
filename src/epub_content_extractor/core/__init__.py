@@ -1,36 +1,27 @@
 from __future__ import annotations
 
-from .core.models import (
+from .models import (
     BlockDebugInfo,
     BlockDecision,
     BlockFeatures,
     Chapter,
+    ClassifiedBlock,
     ExtractedDocument,
     ExtractorConfig,
     ScoreBreakdown,
     TextBlock,
 )
-from .exceptions import (
-    EpubReadError,
-    ExtractionError,
-    InputValidationError,
-    PipelineInvariantError,
-)
-from .extractor import extract_document, extract_text_from_epub
+from .pipeline import transform_blocks
 
 __all__ = [
     "BlockDebugInfo",
     "BlockDecision",
     "BlockFeatures",
     "Chapter",
-    "EpubReadError",
+    "ClassifiedBlock",
     "ExtractedDocument",
-    "ExtractionError",
     "ExtractorConfig",
-    "InputValidationError",
-    "PipelineInvariantError",
     "ScoreBreakdown",
     "TextBlock",
-    "extract_document",
-    "extract_text_from_epub",
+    "transform_blocks",
 ]
