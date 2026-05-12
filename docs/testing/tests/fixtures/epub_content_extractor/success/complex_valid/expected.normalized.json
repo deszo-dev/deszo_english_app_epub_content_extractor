@@ -1,0 +1,240 @@
+{
+  "schema_version": "epub_content_extractor.v2.2",
+  "status": "succeeded",
+  "book": {
+    "title": "Complex Valid EPUB",
+    "subtitle": "A Contract Fixture",
+    "language": "en",
+    "authors": [
+      {
+        "name": "Jane Example",
+        "role": "author"
+      }
+    ],
+    "contributors": [],
+    "metadata": {
+      "identifiers": [
+        {
+          "scheme": "isbn",
+          "value": "9780000000002"
+        }
+      ],
+      "publisher": "Deszo Test Press",
+      "published_at": "2020-01-02",
+      "modified_at": "2020-01-03T00:00:00Z",
+      "description": "A deterministic EPUB fixture for contract testing.",
+      "rights": "Public domain test fixture.",
+      "subjects": [
+        "Testing",
+        "Fiction"
+      ],
+      "source_file": {
+        "file_name": "complex_valid.epub",
+        "sha256": "b1d8a12d710847ace3571a6938f15b2ba840fa42f84729fd68a405d4a3cd82d6",
+        "size_bytes": 4096,
+        "epub_version": "3.0"
+      }
+    },
+    "front_matter": [
+      {
+        "id": "front_001",
+        "type": "title_page",
+        "title": "Title Page",
+        "text": "Complex Valid EPUB\nJane Example",
+        "paragraphs": [
+          {
+            "text": "Complex Valid EPUB"
+          },
+          {
+            "text": "Jane Example"
+          }
+        ],
+        "footnotes": [],
+        "included_in_canonical_text": false
+      }
+    ],
+    "chapters": [
+      {
+        "id": "chapter_001",
+        "chapter_number": 1,
+        "type": "chapter",
+        "title": "Chapter 1",
+        "text": "The first paragraph introduces the test book.\n\nThe second paragraph keeps stable ordering.",
+        "paragraphs": [
+          {
+            "text": "The first paragraph introduces the test book."
+          },
+          {
+            "text": "The second paragraph keeps stable ordering."
+          }
+        ],
+        "footnotes": [
+          {
+            "id": "footnote_001",
+            "marker": "1",
+            "text": "A short explanatory note.",
+            "paragraph_number": 1
+          }
+        ]
+      },
+      {
+        "id": "chapter_002",
+        "chapter_number": 2,
+        "type": "chapter",
+        "title": "Chapter 2",
+        "text": "A second chapter provides another body paragraph.",
+        "paragraphs": [
+          {
+            "text": "A second chapter provides another body paragraph."
+          }
+        ],
+        "footnotes": []
+      }
+    ],
+    "back_matter": [
+      {
+        "id": "back_001",
+        "type": "notes",
+        "title": "Notes",
+        "text": "End notes for the test edition.",
+        "paragraphs": [
+          {
+            "text": "End notes for the test edition."
+          }
+        ],
+        "footnotes": [],
+        "included_in_canonical_text": false
+      }
+    ],
+    "footnotes": [
+      {
+        "id": "footnote_001",
+        "marker": "1",
+        "text": "A short explanatory note.",
+        "paragraph_number": 1
+      }
+    ],
+    "table_of_contents": [
+      {
+        "title": "Title Page",
+        "type": "front_matter",
+        "target_id": "front_001",
+        "children": []
+      },
+      {
+        "title": "Chapter 1",
+        "type": "chapter",
+        "target_id": "chapter_001",
+        "chapter_number": 1,
+        "children": []
+      },
+      {
+        "title": "Chapter 2",
+        "type": "chapter",
+        "target_id": "chapter_002",
+        "chapter_number": 2,
+        "children": []
+      },
+      {
+        "title": "Notes",
+        "type": "back_matter",
+        "target_id": "back_001",
+        "children": []
+      }
+    ],
+    "assets": [
+      {
+        "type": "cover",
+        "media_type": "image/png",
+        "file_name": "images/cover.png",
+        "alt_text": "Plain test cover"
+      }
+    ]
+  },
+  "diagnostics": [
+    {
+      "code": "front_matter_detected",
+      "severity": "info",
+      "message": "Front matter detected.",
+      "entity_type": "section",
+      "entity_id": "front_001",
+      "field": "type"
+    },
+    {
+      "code": "chapter_title_detected",
+      "severity": "info",
+      "message": "Chapter title detected.",
+      "entity_type": "chapter",
+      "entity_id": "chapter_001",
+      "field": "title"
+    },
+    {
+      "code": "chapter_title_detected",
+      "severity": "info",
+      "message": "Chapter title detected.",
+      "entity_type": "chapter",
+      "entity_id": "chapter_002",
+      "field": "title"
+    },
+    {
+      "code": "footnote_detected",
+      "severity": "info",
+      "message": "Footnote detected.",
+      "entity_type": "footnote",
+      "entity_id": "footnote_001"
+    },
+    {
+      "code": "footnote_marker_removed",
+      "severity": "info",
+      "message": "Footnote marker removed from canonical text.",
+      "entity_type": "footnote",
+      "entity_id": "footnote_001",
+      "field": "marker"
+    },
+    {
+      "code": "back_matter_detected",
+      "severity": "info",
+      "message": "Back matter detected.",
+      "entity_type": "section",
+      "entity_id": "back_001",
+      "field": "type"
+    }
+  ],
+  "extraction": {
+    "extractor_version": "2.2.0",
+    "started_at": "1970-01-01T00:00:00Z",
+    "finished_at": "1970-01-01T00:00:00Z",
+    "duration_ms": 0,
+    "config": {
+      "include_front_matter_in_canonical_text": false,
+      "include_back_matter_in_canonical_text": false,
+      "include_footnotes_in_canonical_text": false,
+      "include_chapter_titles_in_canonical_text": true,
+      "include_section_titles_in_canonical_text": false,
+      "max_epub_size_bytes": 104857600,
+      "max_html_document_size_bytes": 10485760,
+      "max_text_block_chars": 100000,
+      "pipeline_timeout_seconds": 120,
+      "html_parse_timeout_seconds": 20,
+      "max_archive_uncompressed_bytes": 524288000,
+      "max_archive_entry_count": 10000,
+      "max_archive_compression_ratio": 100,
+      "max_toc_depth": 8,
+      "max_diagnostic_count": 1000,
+      "max_output_json_bytes": 524288000,
+      "include_debug": false
+    },
+    "summary": {
+      "chapter_count": 2,
+      "front_matter_section_count": 1,
+      "back_matter_section_count": 1,
+      "paragraph_count": 5,
+      "footnote_count": 1,
+      "total_text_chars": 201,
+      "canonical_text_chars": 164,
+      "removed_section_count": 2,
+      "warning_count": 0,
+      "error_count": 0
+    }
+  }
+}

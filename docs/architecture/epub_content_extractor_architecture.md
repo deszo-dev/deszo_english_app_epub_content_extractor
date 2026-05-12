@@ -61,6 +61,25 @@ The extractor does not attempt to:
 - support non-English books;
 - guarantee perfect semantic classification for every publisher-specific EPUB layout.
 
+
+### 2.3 Documentation precedence
+
+For `epub_content_extractor`, normative requirements are resolved in this order:
+
+1. JSON Schema and registry artifacts under `schema/`;
+2. this module-specific architecture and contract document;
+3. the module-specific testing guide;
+4. shared project guidelines under `docs/guidelines/`.
+
+If a shared guideline conflicts with this module-specific contract, this module-specific contract wins.
+
+Examples:
+
+- The module-specific CLI exit-code table overrides generic CLI guideline exit-code categories.
+- The module-specific stdout/stderr contract overrides generic logging recommendations.
+- The module-specific debug redaction policy overrides generic “full tracing” wording.
+- No environment-variable config source exists unless this module-specific contract defines it.
+
 ---
 
 ## 3. Language contract
@@ -148,6 +167,9 @@ Contract:
 
 The official config schema is `schema/epub_content_extractor_config.v2.2.schema.json`.
 
+This Markdown schema block is an explanatory copy of the canonical file. It MUST NOT be maintained as an independent schema source. Release validation MUST fail if this inline copy implies weaker validation than `schema/epub_content_extractor_config.v2.2.schema.json`, especially for the tooling-only `$schema` URI constraints.
+
+
 The schema is closed: unknown config fields are invalid, except for the tooling-only input field `$schema`, which is explicitly allowed and ignored semantically.
 
 ```json
@@ -161,7 +183,8 @@ The schema is closed: unknown config fields are invalid, except for the tooling-
     "$schema": {
       "type": "string",
       "format": "uri",
-      "description": "Optional tooling-only schema URI accepted in input config. Ignored during semantic config processing and omitted from extraction.config."
+      "description": "Optional tooling-only absolute schema URI accepted in input config. Ignored during semantic config processing and omitted from extraction.config.",
+      "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:"
     },
     "include_front_matter_in_canonical_text": {
       "type": "boolean",
@@ -569,6 +592,44 @@ Code generation, release builds, and contract tests MUST NOT rely only on the Ty
 - debug field openness policy.
 
 A release is invalid if examples in this document do not validate against `schema/epub_content_extractor.v2.2.schema.json`.
+
+### 6.1.1 Normative schema and registry artifact locations
+
+The normative machine-readable artifacts for contract version v2.2 MUST be stored at these repository paths:
+
+```text
+schema/epub_content_extractor.v2.2.schema.json
+schema/epub_content_extractor_config.v2.2.schema.json
+schema/epub_content_extractor_diagnostic_registry.v2.2.json
+schema/epub_content_extractor_error_registry.v2.2.json
+schema/epub_content_extractor_diagnostic_registry.v2.2.schema.json
+schema/epub_content_extractor_error_registry.v2.2.schema.json
+schema/epub_content_extractor_fixture_manifest.v2.2.schema.json
+schema/epub_content_extractor_golden_acceptance_manifest.v2.2.schema.json
+```
+
+The golden-output acceptance manifest is stored under:
+
+```text
+docs/testing/epub_content_extractor_golden_acceptance_manifest.v2.2.json
+```
+
+The files under `docs/architecture/` are explanatory documentation unless they are exact synchronized copies of the files above. CI, release validation, and generated tests MUST load schemas and registries from the `schema/` directory.
+
+### Config `$schema` URI assertion policy
+
+The input config field `$schema` is an optional tooling-only field, but when present it MUST be an absolute URI. Contract tests and production validation MUST use the same assertion behavior.
+
+Because JSON Schema Draft 2020-12 validators may treat `format: "uri"` as annotation unless format assertions are enabled, the config schema also constrains `$schema` with a scheme-prefix pattern. CI and contract tests SHOULD still enable URI format assertions where the selected validator supports them.
+
+A release is invalid if any of these disagree:
+
+- documented contract version;
+- physical artifact file names;
+- `$id` values in JSON Schema files;
+- `schema_version` / `registry_version` constants inside registry files;
+- result-schema diagnostic and error enums;
+- diagnostic and error registry code sets.
 
 ### 6.2 JSON field presence, nullable, and empty-string policy
 
@@ -1070,19 +1131,19 @@ Rules:
 
 Canonical text is not stored in `EpubBook`. It is derived by a dedicated builder.
 
+The public builder accepts `options = None` or a partial mapping containing only the boolean keys below:
+
 ```typescript
 interface EpubCanonicalTextBuildOptions {
-  include_front_matter: boolean;
-  include_back_matter: boolean;
-  include_footnotes: boolean;
-  include_chapter_titles: boolean;
-  include_section_titles: boolean;
-  separator_between_paragraphs: "\n\n";
-  separator_between_chapters: "\n\n\n";
+  include_front_matter?: boolean;
+  include_back_matter?: boolean;
+  include_footnotes?: boolean;
+  include_chapter_titles?: boolean;
+  include_section_titles?: boolean;
 }
 ```
 
-Default options:
+Default public options:
 
 ```json
 {
@@ -1090,13 +1151,24 @@ Default options:
   "include_back_matter": false,
   "include_footnotes": false,
   "include_chapter_titles": true,
-  "include_section_titles": false,
-  "separator_between_paragraphs": "\n\n",
-  "separator_between_chapters": "\n\n\n"
+  "include_section_titles": false
 }
 ```
 
-Rules:
+Public option merging rules:
+
+- `options = None` is equivalent to `{}`.
+- Missing option keys use the defaults above.
+- Every provided option value MUST be a boolean.
+- Unknown option keys MUST raise `ValueError`.
+- `separator_between_paragraphs` and `separator_between_chapters` are internal v2.2 constants, not accepted public option keys.
+- Passing separator keys MUST raise `ValueError` in v2.2.
+- The fixed paragraph separator is `"\n\n"`.
+- The fixed chapter separator is `"\n\n\n"`.
+- The builder MUST NOT mutate `book` or `options`.
+- The builder MUST be deterministic.
+
+General builder rules:
 
 - The builder must join paragraph text with `"\n\n"`.
 - The builder must join chapters with `"\n\n\n"`.
@@ -1128,6 +1200,10 @@ Rules:
 
 - Invalid `book` argument is a programmer error.
 - Invalid `options` argument is a programmer error.
+- Public `options` may be a partial mapping containing only the five boolean option keys documented in Section 16.
+- `options = None` MUST be treated exactly like an empty mapping.
+- Non-boolean option values MUST raise `ValueError`.
+- Separator option keys MUST raise `ValueError` even if their values equal the internal constants.
 - Programmer errors MUST raise `TypeError` or `ValueError`.
 - The builder MUST NOT return an `EpubContentExtractionResult`.
 - The builder MUST NOT emit diagnostics.
@@ -1344,9 +1420,11 @@ Rules:
 
 ### 18.1 Diagnostic code matrix
 
-Every `EpubDiagnosticCode` listed below is production-emittable in v2.2. A diagnostic code listed in the schema but not documented in this matrix is reserved and MUST NOT be emitted by production code.
+The table below documents every diagnostic code carried by the v2.2 result schema. Whether a code may be emitted by production code is controlled by the normative diagnostic registry.
 
-Messages are human-readable and are not stable API. `code`, `severity`, deterministic ordering, and count behavior are stable API.
+A diagnostic code with `coverage_status = "reserved_not_emitted_by_default"` is schema-reserved and MUST NOT be emitted by production code in v2.2, even if it appears in this matrix for schema completeness. A release-candidate registry MUST NOT contain `coverage_status = "requires_contract_decision"`; that status is allowed only in draft registries before a release decision is made.
+
+Messages are human-readable and are not stable API. `code`, `severity`, deterministic ordering, count behavior, and registry coverage status are stable API.
 
 | Diagnostic code | Severity | When emitted | Affected entity policy | Count impact | Can appear in success |
 |---|---|---|---|---|---|
@@ -1405,6 +1483,71 @@ This invariant MUST be enforced by the official result JSON Schema and by contra
 - the schema allows a `(code, severity)` pair not listed in the matrix;
 - production code emits a diagnostic code not documented in the matrix.
 
+
+### 18.3 Machine-readable diagnostic and error registries
+
+The Markdown matrices in Sections 18 and 19 are human-readable views of normative registry artifacts. The JSON registry files under `schema/` are normative for drift checks, generated tests, and release validation.
+
+Normative registry files:
+
+```text
+schema/epub_content_extractor_diagnostic_registry.v2.2.json
+schema/epub_content_extractor_error_registry.v2.2.json
+```
+
+Each diagnostic registry entry MUST contain:
+
+```json
+{
+  "code": "metadata_missing_title",
+  "severity": "warning",
+  "when_emitted": "No usable title metadata is available.",
+  "affected_entity_policy": "Do not include raw metadata value.",
+  "count_impact": "warning +1",
+  "can_appear_in_success": true,
+  "message_stability": "not_stable",
+  "coverage_status": "integration_fixture",
+  "coverage_test_ids": ["TC-019"]
+}
+```
+
+Allowed `coverage_status` values:
+
+```text
+integration_fixture
+unit_fixture
+fault_injection
+schema_only
+reserved_not_emitted_by_default
+requires_contract_decision
+```
+
+Each fatal error registry entry MUST contain:
+
+```json
+{
+  "code": "input_not_epub",
+  "recoverable": false,
+  "result_status": "failed",
+  "library_behavior": "structured_failed_result",
+  "cli_exit_code": 1,
+  "cli_json_emission": "yes",
+  "when_emitted": "File cannot be opened as a ZIP-based EPUB container.",
+  "coverage_test_ids": ["TC-013"]
+}
+```
+
+CI MUST fail if:
+
+- a code appears in the result schema but not the corresponding registry;
+- a code appears in a registry but not the result schema;
+- a diagnostic code/severity pair differs between registry, schema, and the Markdown matrix;
+- an error code's CLI exit mapping differs between the error registry and Section 19.1;
+- any release-candidate registry entry has `coverage_status = "requires_contract_decision"`;
+- any registry entry has empty `coverage_test_ids` unless `coverage_status` is `reserved_not_emitted_by_default`;
+- any registry contains duplicate entries with the same `code`;
+- any registry JSON file fails its registry schema.
+
 ---
 
 ## 19. Error object
@@ -1444,6 +1587,7 @@ Rules:
 - EPUB without TOC is not fatal.
 - EPUB with missing language metadata is not fatal because output language is fixed to `"en"`.
 - `recoverable` MUST be `false` for every `EpubExtractionErrorCode` in v2.2. The field is reserved for future versions and remains stable in shape.
+- `output_write_failed` is a reserved structured error code for future/internal output-writer integrations that construct a result object before attempting output persistence. The canonical CLI usually cannot serialize this code to the selected output channel when the output channel itself failed. The canonical `extract_epub_content()` library function MUST NOT return `output_write_failed`, because it does not persist output.
 - Error messages are human-readable and are not stable API. `code`, `recoverable`, status, CLI exit mapping, and JSON emission policy are stable API.
 
 ### 19.1 Error code matrix
@@ -2087,35 +2231,38 @@ Runtime validation policy:
 
 ### 34.1 Fixture and golden output policy
 
-Contract fixtures MUST be stored with deterministic names and expected outputs.
+Contract tests MUST NOT commit generated binary EPUB or ZIP fixtures as source artifacts. Binary EPUB/ZIP inputs are generated at test runtime under the test temporary directory from deterministic committed fixture source specs.
 
-Recommended layout:
+Required committed layout for each contract fixture:
 
 ```text
-tests/fixtures/epub_content_extractor/
-  success/minimal_one_chapter/input.epub
-  success/minimal_one_chapter/config.json
-  success/minimal_one_chapter/expected.json
-  failure/plain_text_with_epub_extension/input.epub
-  failure/plain_text_with_epub_extension/expected.json
-  security/path_traversal_entry/input.epub
-  security/path_traversal_entry/expected.json
-  invalid_config/unknown_field/config.json
-  invalid_config/unknown_field/expected.json
-  invalid_config/schema_tooling_field/config.json
-  invalid_config/schema_tooling_field/expected.json
-  failure/no_readable_content/input.epub
-  failure/no_readable_content/expected.json
-  cli/output_dash/expected_stdout.json
-  cli/unwritable_output/expected_exit.txt
+tests/fixtures/epub_content_extractor/<category>/<fixture_id>/fixture.json
+tests/fixtures/epub_content_extractor/<category>/<fixture_id>/config.json
+tests/fixtures/epub_content_extractor/<category>/<fixture_id>/expected.normalized.json
 ```
+
+`fixture.json` describes how to generate the runtime input file and SHOULD validate against:
+
+```text
+schema/epub_content_extractor_fixture_manifest.v2.2.schema.json
+```
+
+`expected.normalized.json` is compared after applying `normalize_result_for_snapshot()` from the testing guide. The normalizer may replace only:
+
+- `extraction.started_at`;
+- `extraction.finished_at`;
+- `extraction.duration_ms`.
+
+Generated binary EPUB/ZIP files MUST be written only under the test temporary directory and MUST NOT be committed to the repository.
 
 Rules:
 
-- Golden outputs MUST validate against the official result schema.
-- Timestamp fields MAY be normalized by test harnesses before snapshot comparison. Normalization MUST replace `started_at`, `finished_at`, and `duration_ms` with deterministic sentinel values before comparing snapshots; no other fields may be normalized without an explicit fixture rule.
+- Golden outputs MUST validate directly against the official result schema after schema-preserving timestamp/duration normalization. The snapshot normalizer MUST use valid sentinel timestamps rather than non-schema placeholder strings.
 - CLI stderr snapshots are stable only for exit code, safe category, and absence of sensitive data; exact prose is not stable API.
-- There MUST be at least one fixture for every fatal error code and every diagnostic code that production code may emit.
+- There MUST be at least one fixture or documented coverage status for every fatal error code and every diagnostic code that production code may emit.
+- Diagnostic codes with `coverage_status = "reserved_not_emitted_by_default"` are schema-reserved in v2.2. Production code MUST NOT emit them unless the registry entry is changed to `integration_fixture`, `unit_fixture`, or `fault_injection` in a future contract version.
+- The diagnostic registry schema intentionally permits `coverage_status = "requires_contract_decision"` so draft registries can validate structurally.
+- Release-candidate registries MUST NOT contain `coverage_status = "requires_contract_decision"`. Release validation MUST run the additional semantic check that rejects this draft-only value in normative release registry files.
 - There MUST be explicit fixtures for wrong diagnostic severity rejection, no-readable-content success rejection, debug-when-disabled rejection, `$schema` input config acceptance, and unknown config field rejection.
 - There MUST be boundary fixtures for every inclusive limit at `actual == limit` and `actual == limit + 1` where practical.
 
@@ -2451,6 +2598,9 @@ The following decisions are fixed in v2.2:
 80. Top-level `debug` is forbidden when `extraction.config.include_debug = false`.
 81. Config resource limits have hard schema maximums.
 82. v2.2 keeps output-size overflow mapped to `internal_error` as a compatibility compromise; a future schema should add `output_json_too_large`.
+83. Public `build_canonical_text()` options are partial boolean-only mappings; separator options are internal constants and rejected as public keys.
+84. Machine-readable diagnostic and error registries under `schema/` are normative for drift and coverage validation.
+85. Module-specific architecture and schemas override shared guidelines on conflicts.
 
 ---
 

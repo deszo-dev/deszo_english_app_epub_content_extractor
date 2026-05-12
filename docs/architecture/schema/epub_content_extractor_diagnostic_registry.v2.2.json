@@ -1,0 +1,445 @@
+{
+  "$schema": "https://schemas.deszo.local/epub_content_extractor_diagnostic_registry.v2.2.schema.json",
+  "registry_version": "epub_content_extractor_diagnostic_registry.v2.2",
+  "result_schema_version": "epub_content_extractor.v2.2",
+  "message_stability": "not_stable",
+  "diagnostics": [
+    {
+      "code": "metadata_missing_title",
+      "severity": "warning",
+      "when_emitted": "No usable title metadata is available",
+      "affected_entity_policy": "no raw metadata value",
+      "count_impact": "warning +1",
+      "can_appear_in_success": true,
+      "message_stability": "not_stable",
+      "coverage_status": "integration_fixture",
+      "coverage_test_ids": [
+        "TC-019"
+      ]
+    },
+    {
+      "code": "metadata_missing_author",
+      "severity": "info",
+      "when_emitted": "No usable author metadata is available",
+      "affected_entity_policy": "no raw metadata value",
+      "count_impact": "none",
+      "can_appear_in_success": true,
+      "message_stability": "not_stable",
+      "coverage_status": "integration_fixture",
+      "coverage_test_ids": [
+        "TC-019"
+      ]
+    },
+    {
+      "code": "metadata_language_missing",
+      "severity": "info",
+      "when_emitted": "EPUB language metadata is absent",
+      "affected_entity_policy": "no raw metadata value",
+      "count_impact": "none",
+      "can_appear_in_success": true,
+      "message_stability": "not_stable",
+      "coverage_status": "integration_fixture",
+      "coverage_test_ids": [
+        "TC-019"
+      ]
+    },
+    {
+      "code": "metadata_language_conflicts_with_contract",
+      "severity": "warning",
+      "when_emitted": "Metadata language is present and primarily non-English-like",
+      "affected_entity_policy": "normalized language value only",
+      "count_impact": "warning +1",
+      "can_appear_in_success": true,
+      "message_stability": "not_stable",
+      "coverage_status": "integration_fixture",
+      "coverage_test_ids": [
+        "TC-020"
+      ]
+    },
+    {
+      "code": "metadata_author_split_uncertain",
+      "severity": "warning",
+      "when_emitted": "Ambiguous creator string cannot be split safely",
+      "affected_entity_policy": "no full raw metadata if long/private",
+      "count_impact": "warning +1",
+      "can_appear_in_success": true,
+      "message_stability": "not_stable",
+      "coverage_status": "integration_fixture",
+      "coverage_test_ids": [
+        "TC-023"
+      ]
+    },
+    {
+      "code": "metadata_date_invalid",
+      "severity": "warning",
+      "when_emitted": "Date metadata cannot be normalized losslessly",
+      "affected_entity_policy": "field name only",
+      "count_impact": "warning +1",
+      "can_appear_in_success": true,
+      "message_stability": "not_stable",
+      "coverage_status": "integration_fixture",
+      "coverage_test_ids": [
+        "TC-021"
+      ]
+    },
+    {
+      "code": "table_of_contents_missing",
+      "severity": "info",
+      "when_emitted": "EPUB has no usable TOC",
+      "affected_entity_policy": "no href",
+      "count_impact": "none",
+      "can_appear_in_success": true,
+      "message_stability": "not_stable",
+      "coverage_status": "integration_fixture",
+      "coverage_test_ids": [
+        "TC-019"
+      ]
+    },
+    {
+      "code": "toc_target_unresolved",
+      "severity": "warning",
+      "when_emitted": "TOC item target cannot be mapped to an internal output id",
+      "affected_entity_policy": "TOC title or deterministic item id only",
+      "count_impact": "warning +1",
+      "can_appear_in_success": true,
+      "message_stability": "not_stable",
+      "coverage_status": "integration_fixture",
+      "coverage_test_ids": [
+        "TC-P1-DIAG-004"
+      ]
+    },
+    {
+      "code": "chapter_title_detected",
+      "severity": "info",
+      "when_emitted": "A chapter title is confidently detected from heading/TOC",
+      "affected_entity_policy": "internal chapter id only",
+      "count_impact": "none",
+      "can_appear_in_success": true,
+      "message_stability": "not_stable",
+      "coverage_status": "integration_fixture",
+      "coverage_test_ids": [
+        "TC-001",
+        "TC-024"
+      ]
+    },
+    {
+      "code": "chapter_title_uncertain",
+      "severity": "warning",
+      "when_emitted": "Chapter title candidate is ambiguous and omitted (reserved in v2.2; production code must not emit by default).",
+      "affected_entity_policy": "internal chapter id only",
+      "count_impact": "warning +1",
+      "can_appear_in_success": true,
+      "message_stability": "not_stable",
+      "coverage_status": "reserved_not_emitted_by_default",
+      "coverage_test_ids": []
+    },
+    {
+      "code": "chapter_type_uncertain",
+      "severity": "warning",
+      "when_emitted": "Chapter semantic type cannot be inferred (reserved in v2.2; production code must not emit by default).",
+      "affected_entity_policy": "internal chapter id only",
+      "count_impact": "warning +1",
+      "can_appear_in_success": true,
+      "message_stability": "not_stable",
+      "coverage_status": "reserved_not_emitted_by_default",
+      "coverage_test_ids": []
+    },
+    {
+      "code": "front_matter_detected",
+      "severity": "info",
+      "when_emitted": "A front matter section is detected",
+      "affected_entity_policy": "internal section id only",
+      "count_impact": "none",
+      "can_appear_in_success": true,
+      "message_stability": "not_stable",
+      "coverage_status": "integration_fixture",
+      "coverage_test_ids": [
+        "TC-024"
+      ]
+    },
+    {
+      "code": "back_matter_detected",
+      "severity": "info",
+      "when_emitted": "A back matter section is detected",
+      "affected_entity_policy": "internal section id only",
+      "count_impact": "none",
+      "can_appear_in_success": true,
+      "message_stability": "not_stable",
+      "coverage_status": "integration_fixture",
+      "coverage_test_ids": [
+        "TC-024"
+      ]
+    },
+    {
+      "code": "copyright_section_detected",
+      "severity": "info",
+      "when_emitted": "Copyright section is detected and structurally preserved/excluded from canonical text",
+      "affected_entity_policy": "internal section id only",
+      "count_impact": "none",
+      "can_appear_in_success": true,
+      "message_stability": "not_stable",
+      "coverage_status": "integration_fixture",
+      "coverage_test_ids": [
+        "TC-P1-DIAG-005"
+      ]
+    },
+    {
+      "code": "advertisement_section_detected",
+      "severity": "warning",
+      "when_emitted": "Advertisement section is detected",
+      "affected_entity_policy": "internal section id only",
+      "count_impact": "warning +1",
+      "can_appear_in_success": true,
+      "message_stability": "not_stable",
+      "coverage_status": "integration_fixture",
+      "coverage_test_ids": [
+        "TC-P1-DIAG-006"
+      ]
+    },
+    {
+      "code": "publisher_notes_detected",
+      "severity": "info",
+      "when_emitted": "Publisher notes are detected",
+      "affected_entity_policy": "internal section id only",
+      "count_impact": "none",
+      "can_appear_in_success": true,
+      "message_stability": "not_stable",
+      "coverage_status": "integration_fixture",
+      "coverage_test_ids": [
+        "TC-P1-DIAG-007"
+      ]
+    },
+    {
+      "code": "table_of_contents_removed_from_canonical_text",
+      "severity": "info",
+      "when_emitted": "TOC-like text is removed from canonical text",
+      "affected_entity_policy": "internal section/id only",
+      "count_impact": "none",
+      "can_appear_in_success": true,
+      "message_stability": "not_stable",
+      "coverage_status": "integration_fixture",
+      "coverage_test_ids": [
+        "TC-P1-DIAG-008"
+      ]
+    },
+    {
+      "code": "footnote_detected",
+      "severity": "info",
+      "when_emitted": "Footnote/endnote is detected",
+      "affected_entity_policy": "internal footnote id only",
+      "count_impact": "none",
+      "can_appear_in_success": true,
+      "message_stability": "not_stable",
+      "coverage_status": "integration_fixture",
+      "coverage_test_ids": [
+        "TC-024"
+      ]
+    },
+    {
+      "code": "footnote_marker_removed",
+      "severity": "info",
+      "when_emitted": "Inline marker is resolved and removed from paragraph text",
+      "affected_entity_policy": "internal footnote id and owner id only",
+      "count_impact": "none",
+      "can_appear_in_success": true,
+      "message_stability": "not_stable",
+      "coverage_status": "integration_fixture",
+      "coverage_test_ids": [
+        "TC-024"
+      ]
+    },
+    {
+      "code": "footnote_marker_unresolved",
+      "severity": "warning",
+      "when_emitted": "Inline marker cannot be resolved confidently",
+      "affected_entity_policy": "owner id only; marker allowed if short",
+      "count_impact": "warning +1",
+      "can_appear_in_success": true,
+      "message_stability": "not_stable",
+      "coverage_status": "integration_fixture",
+      "coverage_test_ids": [
+        "TC-025"
+      ]
+    },
+    {
+      "code": "footnote_owner_uncertain",
+      "severity": "warning",
+      "when_emitted": "Footnote cannot be assigned to chapter/section confidently",
+      "affected_entity_policy": "internal footnote id only",
+      "count_impact": "warning +1",
+      "can_appear_in_success": true,
+      "message_stability": "not_stable",
+      "coverage_status": "integration_fixture",
+      "coverage_test_ids": [
+        "TC-P1-DIAG-009"
+      ]
+    },
+    {
+      "code": "footnote_duplicate_marker",
+      "severity": "warning",
+      "when_emitted": "Duplicate markers are ambiguous in one owner",
+      "affected_entity_policy": "owner id and marker only",
+      "count_impact": "warning +1",
+      "can_appear_in_success": true,
+      "message_stability": "not_stable",
+      "coverage_status": "integration_fixture",
+      "coverage_test_ids": [
+        "TC-025"
+      ]
+    },
+    {
+      "code": "page_number_removed",
+      "severity": "info",
+      "when_emitted": "Page number artifact is removed",
+      "affected_entity_policy": "no text preview",
+      "count_impact": "none",
+      "can_appear_in_success": true,
+      "message_stability": "not_stable",
+      "coverage_status": "integration_fixture",
+      "coverage_test_ids": [
+        "TC-P1-DIAG-010"
+      ]
+    },
+    {
+      "code": "repeated_header_footer_removed",
+      "severity": "info",
+      "when_emitted": "Repeated running header/footer is removed",
+      "affected_entity_policy": "no text preview",
+      "count_impact": "none",
+      "can_appear_in_success": true,
+      "message_stability": "not_stable",
+      "coverage_status": "integration_fixture",
+      "coverage_test_ids": [
+        "TC-P1-DIAG-011"
+      ]
+    },
+    {
+      "code": "navigation_boilerplate_removed",
+      "severity": "info",
+      "when_emitted": "Navigation boilerplate is removed",
+      "affected_entity_policy": "no URL/path",
+      "count_impact": "none",
+      "can_appear_in_success": true,
+      "message_stability": "not_stable",
+      "coverage_status": "integration_fixture",
+      "coverage_test_ids": [
+        "TC-P1-DIAG-012"
+      ]
+    },
+    {
+      "code": "artifact_removed",
+      "severity": "info",
+      "when_emitted": "Decorative or layout artifact is removed",
+      "affected_entity_policy": "no text preview",
+      "count_impact": "none",
+      "can_appear_in_success": true,
+      "message_stability": "not_stable",
+      "coverage_status": "integration_fixture",
+      "coverage_test_ids": [
+        "TC-P1-DIAG-013"
+      ]
+    },
+    {
+      "code": "unicode_normalized",
+      "severity": "info",
+      "when_emitted": "Text was normalized or mojibake was repaired",
+      "affected_entity_policy": "no text preview",
+      "count_impact": "none",
+      "can_appear_in_success": true,
+      "message_stability": "not_stable",
+      "coverage_status": "integration_fixture",
+      "coverage_test_ids": [
+        "TC-P1-DIAG-014"
+      ]
+    },
+    {
+      "code": "unicode_normalization_failed",
+      "severity": "warning",
+      "when_emitted": "Text normalization/repair partially failed",
+      "affected_entity_policy": "owner id only",
+      "count_impact": "warning +1",
+      "can_appear_in_success": true,
+      "message_stability": "not_stable",
+      "coverage_status": "fault_injection",
+      "coverage_test_ids": [
+        "TC-P1-DIAG-015"
+      ]
+    },
+    {
+      "code": "html_document_too_large_skipped",
+      "severity": "warning",
+      "when_emitted": "One HTML document exceeds `max_html_document_size_bytes`",
+      "affected_entity_policy": "relative EPUB path or deterministic item id only",
+      "count_impact": "warning +1",
+      "can_appear_in_success": true,
+      "message_stability": "not_stable",
+      "coverage_status": "integration_fixture",
+      "coverage_test_ids": [
+        "TC-026"
+      ]
+    },
+    {
+      "code": "html_document_parse_timeout_skipped",
+      "severity": "warning",
+      "when_emitted": "One HTML document exceeds `html_parse_timeout_seconds`",
+      "affected_entity_policy": "relative EPUB path or deterministic item id only",
+      "count_impact": "warning +1",
+      "can_appear_in_success": true,
+      "message_stability": "not_stable",
+      "coverage_status": "fault_injection",
+      "coverage_test_ids": [
+        "TC-P1-TIMEOUT-001"
+      ]
+    },
+    {
+      "code": "text_block_too_large_split",
+      "severity": "warning",
+      "when_emitted": "One block is split to respect `max_text_block_chars`",
+      "affected_entity_policy": "owner id only",
+      "count_impact": "warning +1",
+      "can_appear_in_success": true,
+      "message_stability": "not_stable",
+      "coverage_status": "integration_fixture",
+      "coverage_test_ids": [
+        "TC-P1-LIM-004"
+      ]
+    },
+    {
+      "code": "text_block_too_large_dropped",
+      "severity": "warning",
+      "when_emitted": "One block cannot be split safely and is dropped (reserved in v2.2; production code must not emit by default).",
+      "affected_entity_policy": "owner id only",
+      "count_impact": "warning +1",
+      "can_appear_in_success": true,
+      "message_stability": "not_stable",
+      "coverage_status": "reserved_not_emitted_by_default",
+      "coverage_test_ids": []
+    },
+    {
+      "code": "empty_readable_content",
+      "severity": "error",
+      "when_emitted": "Extraction reaches content analysis but no readable content remains",
+      "affected_entity_policy": "no text preview",
+      "count_impact": "error +1",
+      "can_appear_in_success": false,
+      "message_stability": "not_stable",
+      "coverage_status": "integration_fixture",
+      "coverage_test_ids": [
+        "TC-027"
+      ]
+    },
+    {
+      "code": "quality_warning",
+      "severity": "warning",
+      "when_emitted": "Generic deterministic quality warning or diagnostic truncation",
+      "affected_entity_policy": "safe internal id/count only",
+      "count_impact": "warning +1",
+      "can_appear_in_success": true,
+      "message_stability": "not_stable",
+      "coverage_status": "integration_fixture",
+      "coverage_test_ids": [
+        "TC-P1-LIM-005"
+      ]
+    }
+  ]
+}

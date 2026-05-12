@@ -1,0 +1,19 @@
+{
+  "fixture_id": "F001_MINIMAL_VALID",
+  "kind": "valid_epub",
+  "purpose": "Minimal one-chapter EPUB with metadata, TOC, and no warnings.",
+  "generator": {
+    "tool": "contract_fixture_spec.v2.2",
+    "version_policy": "Generator MUST produce byte-stable ZIP entries with fixed ordering and timestamps.",
+    "runtime_input": "input.epub",
+    "source_spec": "This fixture is a manually approved v2.2 contract baseline; generated binary inputs are not committed."
+  },
+  "expected_artifacts": {
+    "config": "config.json",
+    "expected_normalized_result": "expected.normalized.json"
+  },
+  "notes": [
+    "expected.normalized.json uses schema-preserving normalized timestamps.",
+    "Do not replace with implementation output unless the delta is reviewed as a contract change."
+  ]
+}

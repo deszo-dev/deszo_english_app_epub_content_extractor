@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "epub-content-extractor"
-version = "0.1.0"
+version = "2.2.0"
 description = "Extract clean linear text from EPUB files."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -20,6 +20,7 @@ dependencies = [
     "ftfy>=6.1",
     "rapidfuzz>=3.0",
     "readability-lxml>=0.8",
+    "jsonschema>=4.0",
 ]
 
 [project.optional-dependencies]

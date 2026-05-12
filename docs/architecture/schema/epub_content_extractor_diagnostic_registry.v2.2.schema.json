@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.deszo.local/epub_content_extractor_diagnostic_registry.v2.2.schema.json",
+  "title": "EpubContentExtractorDiagnosticRegistry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "registry_version",
+    "result_schema_version",
+    "message_stability",
+    "diagnostics"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "format": "uri"
+    },
+    "registry_version": {
+      "const": "epub_content_extractor_diagnostic_registry.v2.2"
+    },
+    "result_schema_version": {
+      "const": "epub_content_extractor.v2.2"
+    },
+    "message_stability": {
+      "const": "not_stable"
+    },
+    "diagnostics": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "severity",
+          "when_emitted",
+          "affected_entity_policy",
+          "count_impact",
+          "can_appear_in_success",
+          "message_stability",
+          "coverage_status",
+          "coverage_test_ids"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "severity": {
+            "enum": [
+              "info",
+              "warning",
+              "error"
+            ]
+          },
+          "when_emitted": {
+            "type": "string",
+            "minLength": 1
+          },
+          "affected_entity_policy": {
+            "type": "string",
+            "minLength": 1
+          },
+          "count_impact": {
+            "type": "string",
+            "minLength": 1
+          },
+          "can_appear_in_success": {
+            "type": "boolean"
+          },
+          "message_stability": {
+            "const": "not_stable"
+          },
+          "coverage_status": {
+            "enum": [
+              "integration_fixture",
+              "unit_fixture",
+              "fault_injection",
+              "schema_only",
+              "reserved_not_emitted_by_default",
+              "requires_contract_decision"
+            ]
+          },
+          "coverage_test_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uniqueItems": true
+          }
+        }
+      }
+    }
+  }
+}

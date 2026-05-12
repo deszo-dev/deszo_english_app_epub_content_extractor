@@ -1,0 +1,1373 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.deszo.local/epub_content_extractor.v2.2.schema.json",
+  "title": "EpubContentExtractionResult",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "status",
+    "diagnostics",
+    "extraction"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "epub_content_extractor.v2.2"
+    },
+    "status": {
+      "enum": [
+        "succeeded",
+        "failed"
+      ]
+    },
+    "book": {
+      "$ref": "#/$defs/EpubBook"
+    },
+    "error": {
+      "$ref": "#/$defs/EpubExtractionError"
+    },
+    "diagnostics": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/EpubDiagnostic"
+      }
+    },
+    "extraction": {
+      "$ref": "#/$defs/EpubExtractionInfo"
+    },
+    "debug": {
+      "$ref": "#/$defs/EpubDebugInfo"
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "status": {
+          "const": "succeeded"
+        }
+      },
+      "required": [
+        "book"
+      ],
+      "not": {
+        "required": [
+          "error"
+        ]
+      }
+    },
+    {
+      "properties": {
+        "status": {
+          "const": "failed"
+        }
+      },
+      "required": [
+        "error"
+      ],
+      "not": {
+        "required": [
+          "book"
+        ]
+      }
+    }
+  ],
+  "$defs": {
+    "EpubBook": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "title",
+        "subtitle",
+        "language",
+        "authors",
+        "contributors",
+        "metadata",
+        "front_matter",
+        "chapters",
+        "back_matter",
+        "footnotes",
+        "table_of_contents",
+        "assets"
+      ],
+      "properties": {
+        "title": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "subtitle": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "language": {
+          "const": "en"
+        },
+        "authors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/EpubPerson"
+          }
+        },
+        "contributors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/EpubPerson"
+          }
+        },
+        "metadata": {
+          "$ref": "#/$defs/EpubBookMetadata"
+        },
+        "front_matter": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/EpubBookSection"
+          }
+        },
+        "chapters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/EpubChapter"
+          }
+        },
+        "back_matter": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/EpubBookSection"
+          }
+        },
+        "footnotes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/EpubFootnote"
+          }
+        },
+        "table_of_contents": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/EpubTocItem"
+          }
+        },
+        "assets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/EpubAsset"
+          }
+        }
+      }
+    },
+    "EpubBookMetadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "identifiers",
+        "publisher",
+        "published_at",
+        "modified_at",
+        "description",
+        "rights",
+        "subjects",
+        "source_file"
+      ],
+      "properties": {
+        "identifiers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/EpubIdentifier"
+          }
+        },
+        "publisher": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "published_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$|^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+        },
+        "modified_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$|^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "rights": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "subjects": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "source_file": {
+          "$ref": "#/$defs/EpubSourceFile"
+        }
+      }
+    },
+    "EpubIdentifier": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value"
+      ],
+      "properties": {
+        "scheme": {
+          "type": "string",
+          "minLength": 1
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "EpubSourceFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sha256",
+        "size_bytes"
+      ],
+      "properties": {
+        "file_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "size_bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "epub_version": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "EpubPerson": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "role"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "role": {
+          "enum": [
+            "author",
+            "editor",
+            "translator",
+            "illustrator",
+            "contributor",
+            "unknown"
+          ]
+        }
+      }
+    },
+    "EpubParagraph": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "text"
+      ],
+      "properties": {
+        "text": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "EpubFootnote": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "text"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "marker": {
+          "type": "string",
+          "minLength": 1
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "paragraph_number": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "EpubBookSection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "text",
+        "paragraphs",
+        "footnotes",
+        "included_in_canonical_text"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "enum": [
+            "cover",
+            "title_page",
+            "copyright",
+            "dedication",
+            "epigraph",
+            "preface",
+            "foreword",
+            "introduction",
+            "prologue",
+            "appendix",
+            "notes",
+            "endnotes",
+            "bibliography",
+            "index",
+            "publisher_notes",
+            "advertisement",
+            "unknown"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "paragraphs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/EpubParagraph"
+          }
+        },
+        "footnotes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/EpubFootnote"
+          }
+        },
+        "included_in_canonical_text": {
+          "type": "boolean"
+        }
+      }
+    },
+    "EpubChapter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "chapter_number",
+        "type",
+        "text",
+        "paragraphs",
+        "footnotes"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "chapter_number": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "type": {
+          "enum": [
+            "chapter",
+            "part",
+            "act",
+            "scene",
+            "section",
+            "unknown"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "paragraphs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/EpubParagraph"
+          }
+        },
+        "footnotes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/EpubFootnote"
+          }
+        }
+      }
+    },
+    "EpubTocItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "title",
+        "type",
+        "children"
+      ],
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "enum": [
+            "front_matter",
+            "chapter",
+            "back_matter",
+            "unknown"
+          ]
+        },
+        "target_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "chapter_number": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/EpubTocItem"
+          }
+        }
+      }
+    },
+    "EpubAsset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "media_type"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "cover",
+            "illustration",
+            "image",
+            "unknown"
+          ]
+        },
+        "media_type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "file_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "alt_text": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "EpubDiagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "severity",
+        "message"
+      ],
+      "properties": {
+        "code": {
+          "enum": [
+            "metadata_missing_title",
+            "metadata_missing_author",
+            "metadata_language_missing",
+            "metadata_language_conflicts_with_contract",
+            "metadata_author_split_uncertain",
+            "metadata_date_invalid",
+            "table_of_contents_missing",
+            "toc_target_unresolved",
+            "chapter_title_detected",
+            "chapter_title_uncertain",
+            "chapter_type_uncertain",
+            "front_matter_detected",
+            "back_matter_detected",
+            "copyright_section_detected",
+            "advertisement_section_detected",
+            "publisher_notes_detected",
+            "table_of_contents_removed_from_canonical_text",
+            "footnote_detected",
+            "footnote_marker_removed",
+            "footnote_marker_unresolved",
+            "footnote_owner_uncertain",
+            "footnote_duplicate_marker",
+            "page_number_removed",
+            "repeated_header_footer_removed",
+            "navigation_boilerplate_removed",
+            "artifact_removed",
+            "unicode_normalized",
+            "unicode_normalization_failed",
+            "html_document_too_large_skipped",
+            "html_document_parse_timeout_skipped",
+            "text_block_too_large_split",
+            "text_block_too_large_dropped",
+            "empty_readable_content",
+            "quality_warning"
+          ]
+        },
+        "severity": {
+          "enum": [
+            "info",
+            "warning",
+            "error"
+          ]
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1
+        },
+        "entity_type": {
+          "enum": [
+            "book",
+            "chapter",
+            "section",
+            "footnote",
+            "toc_item",
+            "asset",
+            "config",
+            "archive_entry",
+            "input_file"
+          ]
+        },
+        "entity_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "field": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "allOf": [
+        {
+          "oneOf": [
+            {
+              "properties": {
+                "code": {
+                  "const": "metadata_missing_title"
+                },
+                "severity": {
+                  "const": "warning"
+                }
+              }
+            },
+            {
+              "properties": {
+                "code": {
+                  "const": "metadata_missing_author"
+                },
+                "severity": {
+                  "const": "info"
+                }
+              }
+            },
+            {
+              "properties": {
+                "code": {
+                  "const": "metadata_language_missing"
+                },
+                "severity": {
+                  "const": "info"
+                }
+              }
+            },
+            {
+              "properties": {
+                "code": {
+                  "const": "metadata_language_conflicts_with_contract"
+                },
+                "severity": {
+                  "const": "warning"
+                }
+              }
+            },
+            {
+              "properties": {
+                "code": {
+                  "const": "metadata_author_split_uncertain"
+                },
+                "severity": {
+                  "const": "warning"
+                }
+              }
+            },
+            {
+              "properties": {
+                "code": {
+                  "const": "metadata_date_invalid"
+                },
+                "severity": {
+                  "const": "warning"
+                }
+              }
+            },
+            {
+              "properties": {
+                "code": {
+                  "const": "table_of_contents_missing"
+                },
+                "severity": {
+                  "const": "info"
+                }
+              }
+            },
+            {
+              "properties": {
+                "code": {
+                  "const": "toc_target_unresolved"
+                },
+                "severity": {
+                  "const": "warning"
+                }
+              }
+            },
+            {
+              "properties": {
+                "code": {
+                  "const": "chapter_title_detected"
+                },
+                "severity": {
+                  "const": "info"
+                }
+              }
+            },
+            {
+              "properties": {
+                "code": {
+                  "const": "chapter_title_uncertain"
+                },
+                "severity": {
+                  "const": "warning"
+                }
+              }
+            },
+            {
+              "properties": {
+                "code": {
+                  "const": "chapter_type_uncertain"
+                },
+                "severity": {
+                  "const": "warning"
+                }
+              }
+            },
+            {
+              "properties": {
+                "code": {
+                  "const": "front_matter_detected"
+                },
+                "severity": {
+                  "const": "info"
+                }
+              }
+            },
+            {
+              "properties": {
+                "code": {
+                  "const": "back_matter_detected"
+                },
+                "severity": {
+                  "const": "info"
+                }
+              }
+            },
+            {
+              "properties": {
+                "code": {
+                  "const": "copyright_section_detected"
+                },
+                "severity": {
+                  "const": "info"
+                }
+              }
+            },
+            {
+              "properties": {
+                "code": {
+                  "const": "advertisement_section_detected"
+                },
+                "severity": {
+                  "const": "warning"
+                }
+              }
+            },
+            {
+              "properties": {
+                "code": {
+                  "const": "publisher_notes_detected"
+                },
+                "severity": {
+                  "const": "info"
+                }
+              }
+            },
+            {
+              "properties": {
+                "code": {
+                  "const": "table_of_contents_removed_from_canonical_text"
+                },
+                "severity": {
+                  "const": "info"
+                }
+              }
+            },
+            {
+              "properties": {
+                "code": {
+                  "const": "footnote_detected"
+                },
+                "severity": {
+                  "const": "info"
+                }
+              }
+            },
+            {
+              "properties": {
+                "code": {
+                  "const": "footnote_marker_removed"
+                },
+                "severity": {
+                  "const": "info"
+                }
+              }
+            },
+            {
+              "properties": {
+                "code": {
+                  "const": "footnote_marker_unresolved"
+                },
+                "severity": {
+                  "const": "warning"
+                }
+              }
+            },
+            {
+              "properties": {
+                "code": {
+                  "const": "footnote_owner_uncertain"
+                },
+                "severity": {
+                  "const": "warning"
+                }
+              }
+            },
+            {
+              "properties": {
+                "code": {
+                  "const": "footnote_duplicate_marker"
+                },
+                "severity": {
+                  "const": "warning"
+                }
+              }
+            },
+            {
+              "properties": {
+                "code": {
+                  "const": "page_number_removed"
+                },
+                "severity": {
+                  "const": "info"
+                }
+              }
+            },
+            {
+              "properties": {
+                "code": {
+                  "const": "repeated_header_footer_removed"
+                },
+                "severity": {
+                  "const": "info"
+                }
+              }
+            },
+            {
+              "properties": {
+                "code": {
+                  "const": "navigation_boilerplate_removed"
+                },
+                "severity": {
+                  "const": "info"
+                }
+              }
+            },
+            {
+              "properties": {
+                "code": {
+                  "const": "artifact_removed"
+                },
+                "severity": {
+                  "const": "info"
+                }
+              }
+            },
+            {
+              "properties": {
+                "code": {
+                  "const": "unicode_normalized"
+                },
+                "severity": {
+                  "const": "info"
+                }
+              }
+            },
+            {
+              "properties": {
+                "code": {
+                  "const": "unicode_normalization_failed"
+                },
+                "severity": {
+                  "const": "warning"
+                }
+              }
+            },
+            {
+              "properties": {
+                "code": {
+                  "const": "html_document_too_large_skipped"
+                },
+                "severity": {
+                  "const": "warning"
+                }
+              }
+            },
+            {
+              "properties": {
+                "code": {
+                  "const": "html_document_parse_timeout_skipped"
+                },
+                "severity": {
+                  "const": "warning"
+                }
+              }
+            },
+            {
+              "properties": {
+                "code": {
+                  "const": "text_block_too_large_split"
+                },
+                "severity": {
+                  "const": "warning"
+                }
+              }
+            },
+            {
+              "properties": {
+                "code": {
+                  "const": "text_block_too_large_dropped"
+                },
+                "severity": {
+                  "const": "warning"
+                }
+              }
+            },
+            {
+              "properties": {
+                "code": {
+                  "const": "empty_readable_content"
+                },
+                "severity": {
+                  "const": "error"
+                }
+              }
+            },
+            {
+              "properties": {
+                "code": {
+                  "const": "quality_warning"
+                },
+                "severity": {
+                  "const": "warning"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "EpubExtractionError": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "message",
+        "recoverable"
+      ],
+      "properties": {
+        "code": {
+          "enum": [
+            "invalid_config",
+            "input_file_not_found",
+            "input_not_file",
+            "input_not_epub",
+            "epub_file_too_large",
+            "epub_open_failed",
+            "epub_manifest_unreadable",
+            "epub_archive_security_violation",
+            "no_readable_content",
+            "pipeline_timeout",
+            "output_write_failed",
+            "internal_error"
+          ]
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1
+        },
+        "recoverable": {
+          "const": false
+        }
+      }
+    },
+    "EpubExtractionInfo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "extractor_version",
+        "started_at",
+        "finished_at",
+        "duration_ms",
+        "config",
+        "summary"
+      ],
+      "properties": {
+        "extractor_version": {
+          "type": "string",
+          "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$"
+        },
+        "started_at": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+        },
+        "finished_at": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+        },
+        "duration_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "config": {
+          "$ref": "#/$defs/EpubExtractionConfigSnapshot"
+        },
+        "summary": {
+          "$ref": "#/$defs/EpubExtractionSummary"
+        }
+      }
+    },
+    "EpubExtractionConfigSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "include_front_matter_in_canonical_text",
+        "include_back_matter_in_canonical_text",
+        "include_footnotes_in_canonical_text",
+        "include_chapter_titles_in_canonical_text",
+        "include_section_titles_in_canonical_text",
+        "max_epub_size_bytes",
+        "max_html_document_size_bytes",
+        "max_text_block_chars",
+        "pipeline_timeout_seconds",
+        "html_parse_timeout_seconds",
+        "max_archive_uncompressed_bytes",
+        "max_archive_entry_count",
+        "max_archive_compression_ratio",
+        "max_toc_depth",
+        "max_diagnostic_count",
+        "max_output_json_bytes",
+        "include_debug"
+      ],
+      "properties": {
+        "include_front_matter_in_canonical_text": {
+          "type": "boolean",
+          "default": false
+        },
+        "include_back_matter_in_canonical_text": {
+          "type": "boolean",
+          "default": false
+        },
+        "include_footnotes_in_canonical_text": {
+          "type": "boolean",
+          "default": false
+        },
+        "include_chapter_titles_in_canonical_text": {
+          "type": "boolean",
+          "default": true
+        },
+        "include_section_titles_in_canonical_text": {
+          "type": "boolean",
+          "default": false
+        },
+        "max_epub_size_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 104857600,
+          "maximum": 1073741824
+        },
+        "max_html_document_size_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 10485760,
+          "maximum": 104857600
+        },
+        "max_text_block_chars": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 100000,
+          "maximum": 1000000
+        },
+        "pipeline_timeout_seconds": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 120,
+          "maximum": 3600
+        },
+        "html_parse_timeout_seconds": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 20,
+          "maximum": 300
+        },
+        "max_archive_uncompressed_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 524288000,
+          "maximum": 2147483648
+        },
+        "max_archive_entry_count": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 10000,
+          "maximum": 100000
+        },
+        "max_archive_compression_ratio": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 100,
+          "maximum": 1000
+        },
+        "max_toc_depth": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 8,
+          "maximum": 64
+        },
+        "max_diagnostic_count": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 1000,
+          "maximum": 100000
+        },
+        "max_output_json_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 524288000,
+          "maximum": 1073741824
+        },
+        "include_debug": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "EpubExtractionSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "chapter_count",
+        "front_matter_section_count",
+        "back_matter_section_count",
+        "paragraph_count",
+        "footnote_count",
+        "total_text_chars",
+        "canonical_text_chars",
+        "removed_section_count",
+        "warning_count",
+        "error_count"
+      ],
+      "properties": {
+        "chapter_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "front_matter_section_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "back_matter_section_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "paragraph_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "footnote_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "total_text_chars": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "canonical_text_chars": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "removed_section_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "warning_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "error_count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "EpubDebugInfo": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "manifest": {
+          "type": "array"
+        },
+        "spine": {
+          "type": "array"
+        },
+        "raw_blocks": {
+          "type": "array"
+        },
+        "scoring": {
+          "type": "array"
+        },
+        "source_maps": {
+          "type": "array"
+        },
+        "parser": {},
+        "timings": {},
+        "redaction": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "applied",
+            "text_preview_max_chars",
+            "html_preview_max_chars"
+          ],
+          "properties": {
+            "applied": {
+              "type": "boolean"
+            },
+            "text_preview_max_chars": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 200
+            },
+            "html_preview_max_chars": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 500
+            }
+          }
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "succeeded"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "required": [
+          "book"
+        ],
+        "properties": {
+          "book": {
+            "anyOf": [
+              {
+                "properties": {
+                  "chapters": {
+                    "contains": {
+                      "type": "object",
+                      "required": [
+                        "text",
+                        "paragraphs"
+                      ],
+                      "properties": {
+                        "text": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "paragraphs": {
+                          "type": "array",
+                          "minItems": 1
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "front_matter": {
+                    "contains": {
+                      "type": "object",
+                      "required": [
+                        "text",
+                        "paragraphs"
+                      ],
+                      "properties": {
+                        "text": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "paragraphs": {
+                          "type": "array",
+                          "minItems": 1
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "back_matter": {
+                    "contains": {
+                      "type": "object",
+                      "required": [
+                        "text",
+                        "paragraphs"
+                      ],
+                      "properties": {
+                        "text": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "paragraphs": {
+                          "type": "array",
+                          "minItems": 1
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          "diagnostics": {
+            "type": "array",
+            "items": {
+              "not": {
+                "type": "object",
+                "required": [
+                  "severity"
+                ],
+                "properties": {
+                  "severity": {
+                    "const": "error"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "extraction"
+        ],
+        "properties": {
+          "extraction": {
+            "required": [
+              "config"
+            ],
+            "properties": {
+              "config": {
+                "required": [
+                  "include_debug"
+                ],
+                "properties": {
+                  "include_debug": {
+                    "const": false
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "not": {
+          "required": [
+            "debug"
+          ]
+        }
+      }
+    }
+  ]
+}

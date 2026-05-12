@@ -1,24 +1,17 @@
 from __future__ import annotations
 
-from .core.models import (
-    BlockDebugInfo,
-    BlockDecision,
-    BlockFeatures,
-    Chapter,
-    ExtractedDocument,
-    ExtractorConfig,
-    ScoreBreakdown,
-    TextBlock,
+from .config import (
+    EXTRACTOR_VERSION,
+    SCHEMA_VERSION,
+    EpubContentExtractorConfig,
+    default_config_dict,
 )
-from .exceptions import (
-    EpubReadError,
-    ExtractionError,
-    InputValidationError,
-    PipelineInvariantError,
-)
+from .exceptions import EpubReadError, ExtractionError, InputValidationError, PipelineInvariantError
 from .extractor import (
     EpubContentExtractorPipeline,
+    build_canonical_text,
     extract_document,
+    extract_epub_content,
     extract_text_from_epub,
 )
 from .runtime_metadata import (
@@ -32,25 +25,23 @@ from .runtime_metadata import (
 )
 
 __all__ = [
-    "BlockDebugInfo",
-    "BlockDecision",
-    "BlockFeatures",
-    "Chapter",
+    "EpubContentExtractorConfig",
     "EpubContentExtractorPipeline",
     "EpubReadError",
-    "ExtractedDocument",
+    "EXTRACTOR_VERSION",
     "ExtractionError",
-    "ExtractorConfig",
     "InputValidationError",
-    "PipelineRuntimeMetadata",
     "PipelineInvariantError",
+    "PipelineRuntimeMetadata",
     "RuntimeAsset",
     "RuntimeDependency",
-    "ScoreBreakdown",
+    "SCHEMA_VERSION",
     "StageRuntimeMetadata",
-    "TextBlock",
+    "build_canonical_text",
     "canonical_json",
+    "default_config_dict",
     "extract_document",
+    "extract_epub_content",
     "extract_text_from_epub",
     "runtime_metadata",
     "stage_fingerprint",

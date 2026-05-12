@@ -55,20 +55,24 @@ class PipelineRuntimeMetadata:
 def runtime_metadata() -> PipelineRuntimeMetadata:
     root = project_root()
     package_root = root / "src" / "epub_content_extractor"
+    schema_root = root / "docs" / "architecture" / "schema"
     pipeline_version = get_module_version("epub-content-extractor")
 
     stages = [
         StageRuntimeMetadata(
             stage_name="epub_document_reading",
-            stage_contract_version="1",
-            output_schema_version="epub-html-documents.v1",
-            config_contract_version="epub-reader-config.v1",
+            stage_contract_version="2.2",
+            output_schema_version="epub-html-documents.v2.2",
+            config_contract_version="epub-content-extractor-config.v2.2",
             module_version=pipeline_version,
             source_fingerprint=source_fingerprint_for_paths(
                 root,
                 [
                     package_root / "adapters" / "epub.py",
+                    package_root / "config.py",
                     package_root / "exceptions.py",
+                    package_root / "extractor.py",
+                    schema_root / "epub_content_extractor_config.v2.2.schema.json",
                 ],
             ),
             dependencies=[
@@ -79,17 +83,19 @@ def runtime_metadata() -> PipelineRuntimeMetadata:
         ),
         StageRuntimeMetadata(
             stage_name="html_block_extraction",
-            stage_contract_version="1",
-            output_schema_version="text-blocks.v1",
-            config_contract_version="html-block-config.v1",
+            stage_contract_version="2.2",
+            output_schema_version="text-blocks.v2.2",
+            config_contract_version="epub-content-extractor-config.v2.2",
             module_version=pipeline_version,
             source_fingerprint=source_fingerprint_for_paths(
                 root,
                 [
                     package_root / "adapters" / "html.py",
+                    package_root / "config.py",
                     package_root / "core" / "constants.py",
                     package_root / "core" / "models.py",
                     package_root / "core" / "text.py",
+                    package_root / "extractor.py",
                 ],
             ),
             dependencies=[
@@ -100,21 +106,21 @@ def runtime_metadata() -> PipelineRuntimeMetadata:
         ),
         StageRuntimeMetadata(
             stage_name="content_extraction",
-            stage_contract_version="1",
-            output_schema_version="extracted-document.v1",
-            config_contract_version="extractor-config.v1",
+            stage_contract_version="2.2",
+            output_schema_version="epub_content_extractor.v2.2",
+            config_contract_version="epub-content-extractor-config.v2.2",
             module_version=pipeline_version,
             source_fingerprint=source_fingerprint_for_paths(
                 root,
                 [
+                    package_root / "config.py",
                     package_root / "exceptions.py",
-                    package_root / "core" / "constants.py",
-                    package_root / "core" / "features.py",
-                    package_root / "core" / "footnotes.py",
-                    package_root / "core" / "models.py",
-                    package_root / "core" / "pipeline.py",
-                    package_root / "core" / "scoring.py",
-                    package_root / "core" / "text.py",
+                    package_root / "extractor.py",
+                    package_root / "schema_utils.py",
+                    schema_root / "epub_content_extractor.v2.2.schema.json",
+                    schema_root / "epub_content_extractor_config.v2.2.schema.json",
+                    schema_root / "epub_content_extractor_diagnostic_registry.v2.2.json",
+                    schema_root / "epub_content_extractor_error_registry.v2.2.json",
                 ],
             ),
             dependencies=[
@@ -128,7 +134,7 @@ def runtime_metadata() -> PipelineRuntimeMetadata:
     return PipelineRuntimeMetadata(
         pipeline_name="epub_content_extractor",
         pipeline_version=pipeline_version,
-        pipeline_contract_version="1",
+        pipeline_contract_version="2.2",
         stages={stage.stage_name: stage for stage in stages},
     )
 

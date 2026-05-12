@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.deszo.local/epub_content_extractor_error_registry.v2.2.schema.json",
+  "title": "EpubContentExtractorErrorRegistry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "registry_version",
+    "result_schema_version",
+    "message_stability",
+    "errors"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "format": "uri"
+    },
+    "registry_version": {
+      "const": "epub_content_extractor_error_registry.v2.2"
+    },
+    "result_schema_version": {
+      "const": "epub_content_extractor.v2.2"
+    },
+    "message_stability": {
+      "const": "not_stable"
+    },
+    "errors": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "when_emitted",
+          "recoverable",
+          "result_status",
+          "library_behavior",
+          "cli_exit_code",
+          "cli_json_emission",
+          "message_stability",
+          "coverage_test_ids"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "when_emitted": {
+            "type": "string",
+            "minLength": 1
+          },
+          "recoverable": {
+            "type": "boolean"
+          },
+          "result_status": {
+            "const": "failed"
+          },
+          "library_behavior": {
+            "type": "string",
+            "minLength": 1
+          },
+          "cli_exit_code": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "cli_json_emission": {
+            "type": "string",
+            "minLength": 1
+          },
+          "message_stability": {
+            "const": "not_stable"
+          },
+          "coverage_test_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uniqueItems": true
+          }
+        }
+      }
+    }
+  }
+}

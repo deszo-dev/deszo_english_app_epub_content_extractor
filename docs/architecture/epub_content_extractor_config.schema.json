@@ -8,7 +8,8 @@
     "$schema": {
       "type": "string",
       "format": "uri",
-      "description": "Optional tooling-only schema URI accepted in input config. Ignored during semantic config processing and omitted from extraction.config."
+      "description": "Optional tooling-only absolute schema URI accepted in input config. Ignored during semantic config processing and omitted from extraction.config.",
+      "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:"
     },
     "include_front_matter_in_canonical_text": {
       "type": "boolean",
