@@ -2,7 +2,7 @@
 
 ## English
 
-`epub_content_extractor` is a planned EPUB-to-clean-text extractor designed for downstream NLP workflows. Its goal is to read an `.epub` file as a structured book, extract only meaningful document content, remove navigation and publishing noise, and produce clean linear text while preserving paragraph and chapter semantics.
+`epub_content_extractor` is an EPUB-to-clean-text extractor designed for downstream NLP workflows. It reads an `.epub` file as a structured book, extracts only meaningful document content, removes navigation and publishing noise, and produces clean linear text while preserving paragraph and chapter semantics.
 
 The project is intended for open publication and may be used for non-commercial purposes.
 
@@ -23,13 +23,13 @@ The key design principle is to preserve the semantic structure of the source tex
 
 ### Architecture Summary
 
-The extractor should process EPUB files as structured content rather than as raw text dumps:
+The extractor processes EPUB files as structured content rather than as raw text dumps:
 
 ```text
 EPUB -> DOCUMENT items -> HTML -> Blocks -> Features -> Scoring -> Classification -> Clean Text
 ```
 
-Recommended processing stages:
+Processing stages:
 
 1. Read EPUB structure with `ebooklib`.
 2. Extract only `DOCUMENT` items, usually chapters.
@@ -44,7 +44,7 @@ Recommended processing stages:
 
 ### Quality Guarantees
 
-The extractor should aim to provide:
+The extractor aims to provide:
 
 - no glued words or sentences
 - no truncated sentences
@@ -57,13 +57,20 @@ The extractor should aim to provide:
 ### Public API
 
 ```python
-from epub_content_extractor import extract_document, extract_text_from_epub
+from epub_content_extractor import (
+    extract_clean_text_document,
+    extract_document,
+    extract_text_from_epub,
+)
 
-document = extract_document("book.epub")
-text = extract_text_from_epub("book.epub")
+document = extract_document("book.epub")          # ExtractedDocument
+text = extract_text_from_epub("book.epub")        # str
+clean = extract_clean_text_document("book.epub")  # CleanTextDocument
 ```
 
-The `extract_text_from_epub()` helper is based on `extract_document()` and returns `ExtractedDocument.to_text()`.
+`extract_text_from_epub()` is a thin wrapper over `extract_document()` and returns `ExtractedDocument.to_text()`.
+
+`extract_clean_text_document()` returns the structured `CleanTextDocument` (`schema_version: "epub_content_extractor.v1"`) used by downstream consumers such as `grammar_extractor` for debug/source tracing. The `text` field is byte-identical to `extract_text_from_epub()`.
 
 ```python
 class ExtractedDocument:
@@ -73,6 +80,17 @@ class ExtractedDocument:
 class Chapter:
     title: str
     paragraphs: list[str]
+    chapter_index: int
+
+
+class CleanTextDocument:
+    schema_version: str             # "epub_content_extractor.v1"
+    text: str                       # canonical clean text
+    chapters: list[CleanTextChapter]      # with text_start_char / text_end_char
+    paragraphs: list[CleanTextParagraph]  # with text_start_char / text_end_char
+    source: EpubSourceMetadata      # input_file_name, sha256, title, author, language
+    extraction_summary: EpubExtractionSummary
+    diagnostics: list[EpubExtractionDiagnostic]
 ```
 
 ### CLI
@@ -85,6 +103,13 @@ Write debug information with block scores, features, and keep/drop reasons:
 
 ```bash
 epub-content-extractor book.epub -o book.txt --debug debug_book -d
+```
+
+Emit the structured `CleanTextDocument` JSON for downstream consumers:
+
+```bash
+epub-content-extractor book.epub --json book.json
+epub-content-extractor book.epub -o book.txt --json book.json   # both
 ```
 
 CLI writes only extracted text to stdout. Logs and errors go to stderr. Exit code `0`
@@ -100,7 +125,7 @@ means success, `1` means expected input/data error, and `2+` means system error.
 - `rapidfuzz` for fuzzy repetition detection
 - `readability-lxml` for unusually noisy EPUB files
 
-For the detailed architecture, see [docs/architecture.md](docs/architecture.md) and [docs/architecture.en.md](docs/architecture.en.md).
+For the detailed architecture, see [docs/architecture.md](docs/architecture.md) and [docs/architecture.en.md](docs/architecture.en.md). The downstream integration contract (`CleanTextDocument`, `schema_version: "epub_content_extractor.v1"`) is specified in the architecture document and consumed by `grammar_extractor`.
 
 ### License And Use
 
@@ -108,7 +133,7 @@ This project is intended to be published with a non-commercial use license. You 
 
 ## Русский
 
-`epub_content_extractor` - это проект extractor-а для преобразования EPUB в чистый линейный текст, пригодный для downstream NLP-задач. Цель проекта - читать `.epub` как структурированную книгу, извлекать только содержательные части, удалять навигационный и издательский шум и сохранять семантику глав и абзацев.
+`epub_content_extractor` - extractor для преобразования EPUB в чистый линейный текст, пригодный для downstream NLP-задач. Модуль читает `.epub` как структурированную книгу, извлекает только содержательные части, удаляет навигационный и издательский шум и сохраняет семантику глав и абзацев.
 
 Проект планируется к открытой публикации и может использоваться без коммерческого умысла.
 
@@ -129,13 +154,13 @@ This project is intended to be published with a non-commercial use license. You 
 
 ### Краткая Архитектура
 
-Extractor должен обрабатывать EPUB как структуру, а не как простой текстовый дамп:
+Extractor обрабатывает EPUB как структуру, а не как простой текстовый дамп:
 
 ```text
 EPUB -> DOCUMENT items -> HTML -> Blocks -> Features -> Scoring -> Classification -> Clean Text
 ```
 
-Рекомендуемые этапы обработки:
+Этапы обработки:
 
 1. Читать структуру EPUB через `ebooklib`.
 2. Извлекать только элементы `DOCUMENT`, обычно главы.
@@ -150,7 +175,7 @@ EPUB -> DOCUMENT items -> HTML -> Blocks -> Features -> Scoring -> Classificatio
 
 ### Гарантии Качества
 
-Extractor должен стремиться обеспечивать:
+Extractor стремится обеспечивать:
 
 - отсутствие склеенных слов и предложений
 - отсутствие обрезанных предложений
@@ -163,13 +188,20 @@ Extractor должен стремиться обеспечивать:
 ### Публичный API
 
 ```python
-from epub_content_extractor import extract_document, extract_text_from_epub
+from epub_content_extractor import (
+    extract_clean_text_document,
+    extract_document,
+    extract_text_from_epub,
+)
 
-document = extract_document("book.epub")
-text = extract_text_from_epub("book.epub")
+document = extract_document("book.epub")          # ExtractedDocument
+text = extract_text_from_epub("book.epub")        # str
+clean = extract_clean_text_document("book.epub")  # CleanTextDocument
 ```
 
-Вспомогательная функция `extract_text_from_epub()` основана на `extract_document()` и возвращает `ExtractedDocument.to_text()`.
+`extract_text_from_epub()` - тонкая обёртка над `extract_document()`, возвращает `ExtractedDocument.to_text()`.
+
+`extract_clean_text_document()` возвращает структурированный `CleanTextDocument` (`schema_version: "epub_content_extractor.v1"`) - контракт для downstream-потребителей, например `grammar_extractor`, для debug и source tracing. Поле `text` побайтно совпадает с результатом `extract_text_from_epub()`.
 
 ```python
 class ExtractedDocument:
@@ -179,6 +211,17 @@ class ExtractedDocument:
 class Chapter:
     title: str
     paragraphs: list[str]
+    chapter_index: int
+
+
+class CleanTextDocument:
+    schema_version: str             # "epub_content_extractor.v1"
+    text: str                       # канонический clean text
+    chapters: list[CleanTextChapter]      # с text_start_char / text_end_char
+    paragraphs: list[CleanTextParagraph]  # с text_start_char / text_end_char
+    source: EpubSourceMetadata      # input_file_name, sha256, title, author, language
+    extraction_summary: EpubExtractionSummary
+    diagnostics: list[EpubExtractionDiagnostic]
 ```
 
 ### CLI
@@ -191,6 +234,13 @@ Debug-режим сохраняет scores, features и причины keep/drop
 
 ```bash
 epub-content-extractor book.epub -o book.txt --debug debug_book -d
+```
+
+Выгрузка структурированного `CleanTextDocument` в JSON для downstream-потребителей:
+
+```bash
+epub-content-extractor book.epub --json book.json
+epub-content-extractor book.epub -o book.txt --json book.json   # оба вывода
 ```
 
 CLI пишет в stdout только извлеченный текст. Логи и ошибки идут в stderr. Код `0`
@@ -206,7 +256,7 @@ CLI пишет в stdout только извлеченный текст. Лог�
 - `rapidfuzz` для fuzzy-поиска повторов
 - `readability-lxml` для особенно грязных EPUB-файлов
 
-Подробная архитектура описана в [docs/architecture.md](docs/architecture.md) и [docs/architecture.en.md](docs/architecture.en.md).
+Подробная архитектура описана в [docs/architecture.md](docs/architecture.md) и [docs/architecture.en.md](docs/architecture.en.md). Контракт интеграции с downstream (`CleanTextDocument`, `schema_version: "epub_content_extractor.v1"`) задан в архитектурном документе и используется `grammar_extractor`.
 
 ### Лицензия И Использование
 
