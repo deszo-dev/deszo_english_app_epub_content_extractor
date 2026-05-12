@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import warnings
 from dataclasses import dataclass
 from pathlib import Path
@@ -7,6 +8,7 @@ from pathlib import Path
 from bs4 import BeautifulSoup, XMLParsedAsHTMLWarning
 from ebooklib import ITEM_DOCUMENT, epub
 
+from epub_content_extractor.core.contract import EpubSourceMetadata
 from epub_content_extractor.exceptions import EpubReadError, InputValidationError
 
 warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
@@ -19,7 +21,17 @@ class HtmlDocument:
     chapter_index: int
 
 
+@dataclass(frozen=True, slots=True)
+class EpubBook:
+    documents: list[HtmlDocument]
+    metadata: EpubSourceMetadata
+
+
 def read_epub_documents(epub_path: str | Path) -> list[HtmlDocument]:
+    return read_epub(epub_path).documents
+
+
+def read_epub(epub_path: str | Path) -> EpubBook:
     path = Path(epub_path)
     validate_epub_path(path)
     try:
@@ -36,7 +48,26 @@ def read_epub_documents(epub_path: str | Path) -> list[HtmlDocument]:
         if is_gutenberg_boilerplate_document(html):
             continue
         documents.append(HtmlDocument(html=html, chapter_index=chapter_index))
-    return documents
+
+    metadata = EpubSourceMetadata(
+        input_file_name=path.name,
+        input_sha256=hashlib.sha256(path.read_bytes()).hexdigest(),
+        title=_first_dc(book, "title"),
+        author=_first_dc(book, "creator"),
+        language=_first_dc(book, "language"),
+    )
+    return EpubBook(documents=documents, metadata=metadata)
+
+
+def _first_dc(book: epub.EpubBook, name: str) -> str | None:
+    items = book.get_metadata("DC", name)
+    if not items:
+        return None
+    value = items[0][0]
+    if not isinstance(value, str):
+        return None
+    value = value.strip()
+    return value or None
 
 
 def validate_epub_path(path: Path) -> None:

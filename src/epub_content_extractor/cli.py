@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import argparse
+import json
 import logging
 import sys
 from pathlib import Path
 
 from .exceptions import EpubReadError, ExtractionError, InputValidationError
-from .extractor import extract_document
+from .extractor import extract_clean_text_document, extract_document
 
 LOGGER = logging.getLogger("epub_content_extractor")
 
@@ -30,6 +31,13 @@ def build_parser() -> argparse.ArgumentParser:
         help="Write block decisions, score breakdowns, and features to this directory.",
     )
     parser.add_argument(
+        "--json",
+        type=Path,
+        metavar="PATH",
+        dest="json_path",
+        help="Write the structured CleanTextDocument (epub_content_extractor.v1) to this JSON file.",
+    )
+    parser.add_argument(
         "-d",
         "--debug-log",
         action="store_true",
@@ -45,11 +53,23 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         LOGGER.info(
-            "pipeline start input=%s output=%s debug=%s",
+            "pipeline start input=%s output=%s debug=%s json=%s",
             args.input,
             args.output,
             args.debug,
+            args.json_path,
         )
+        if args.json_path is not None:
+            clean = extract_clean_text_document(args.input, debug_dir=args.debug)
+            write_json(args.json_path, clean.to_dict())
+            if args.output is not None:
+                write_output(args.output, clean.text)
+            LOGGER.info(
+                "pipeline end chapters=%d paragraphs=%d",
+                len(clean.chapters),
+                len(clean.paragraphs),
+            )
+            return 0
         document = extract_document(args.input, debug_dir=args.debug)
         text = document.to_text()
         write_output(args.output, text)
@@ -80,6 +100,12 @@ def configure_logging(*, debug: bool) -> None:
         stream=sys.stderr,
         force=True,
     )
+
+
+def write_json(json_path: Path, payload: dict[str, object]) -> None:
+    json_path.parent.mkdir(parents=True, exist_ok=True)
+    with json_path.open("w", encoding="utf-8") as handle:
+        json.dump(payload, handle, ensure_ascii=False, indent=2)
 
 
 def write_output(output_path: Path | None, text: str) -> None:

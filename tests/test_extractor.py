@@ -1,9 +1,15 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from epub_content_extractor.adapters.html import html_to_blocks
 from epub_content_extractor.cli import main
+from epub_content_extractor.core.contract import (
+    SCHEMA_VERSION,
+    EpubSourceMetadata,
+    build_clean_text_document,
+)
 from epub_content_extractor.core.footnotes import (
     build_footnote_index,
     remove_inline_footnote_markers,
@@ -77,3 +83,65 @@ def test_cli_validation_error_uses_expected_exit_code(tmp_path: Path) -> None:
     input_path.write_text("not an epub", encoding="utf-8")
 
     assert main([str(input_path)]) == 1
+
+
+def test_clean_text_document_offsets_match_text() -> None:
+    first = html_to_blocks(
+        "<p>This is the first complete paragraph.</p><p>This is the second one.</p>",
+        0,
+    )
+    second = html_to_blocks("<p>Another chapter starts here.</p>", 1)
+
+    extracted = transform_blocks([first, second])
+    document = build_clean_text_document(
+        extracted,
+        EpubSourceMetadata(input_file_name="sample.epub"),
+    )
+
+    assert document.schema_version == SCHEMA_VERSION
+    assert document.text == extracted.to_text()
+    assert len(document.chapters) == 2
+    assert len(document.paragraphs) == 3
+    for paragraph in document.paragraphs:
+        assert (
+            document.text[paragraph.text_start_char : paragraph.text_end_char]
+            == paragraph.text
+        )
+    for chapter in document.chapters:
+        slice_ = document.text[chapter.text_start_char : chapter.text_end_char]
+        assert slice_  # non-empty
+        assert "\n\n\n" not in slice_
+
+    summary = document.extraction_summary
+    assert summary.raw_block_count == (
+        summary.kept_block_count
+        + summary.maybe_block_count
+        + summary.dropped_block_count
+    )
+    assert document.source.input_file_name == "sample.epub"
+
+
+def test_clean_text_document_minimal_dict_only_has_text() -> None:
+    blocks = html_to_blocks("<p>This is a single readable paragraph.</p>", 0)
+    extracted = transform_blocks([blocks])
+    document = build_clean_text_document(extracted, EpubSourceMetadata())
+
+    assert document.to_minimal_dict() == {"text": extracted.to_text()}
+
+
+def test_clean_text_document_to_dict_is_json_serializable() -> None:
+    blocks = html_to_blocks("<p>This is a single readable paragraph.</p>", 0)
+    extracted = transform_blocks([blocks])
+    document = build_clean_text_document(
+        extracted, EpubSourceMetadata(title="X", author="Y", language="en")
+    )
+
+    payload = document.to_dict()
+    encoded = json.dumps(payload, ensure_ascii=False)
+    restored = json.loads(encoded)
+    assert restored["schema_version"] == SCHEMA_VERSION
+    assert restored["text"] == document.text
+    assert restored["source"]["title"] == "X"
+    assert isinstance(restored["paragraphs"], list)
+    assert isinstance(restored["chapters"], list)
+    assert isinstance(restored["diagnostics"], list)

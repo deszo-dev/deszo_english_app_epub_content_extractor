@@ -64,7 +64,13 @@ def transform_blocks(
 
         paragraphs = merge_fragments(paragraphs)
         if paragraphs:
-            output_chapters.append(Chapter(title="", paragraphs=paragraphs))
+            output_chapters.append(
+                Chapter(
+                    title="",
+                    paragraphs=paragraphs,
+                    chapter_index=chapter_blocks[0].chapter_index,
+                )
+            )
 
         seen_texts.extend(item.block.text for item in classified)
 

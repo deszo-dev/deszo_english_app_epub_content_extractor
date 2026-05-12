@@ -78,6 +78,7 @@ class ClassifiedBlock:
 class Chapter:
     title: str
     paragraphs: list[str]
+    chapter_index: int = 0
 
 
 @dataclass(slots=True)
