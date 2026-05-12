@@ -7,6 +7,30 @@ from .adapters.epub import read_epub_documents
 from .adapters.html import html_to_blocks
 from .core.models import ExtractedDocument, ExtractorConfig
 from .core.pipeline import transform_blocks
+from .runtime_metadata import PipelineRuntimeMetadata, runtime_metadata
+
+
+class EpubContentExtractorPipeline:
+    def runtime_metadata(self) -> PipelineRuntimeMetadata:
+        return runtime_metadata()
+
+    def extract_document(
+        self,
+        epub_path: str | Path,
+        *,
+        config: ExtractorConfig | None = None,
+        debug_dir: str | Path | None = None,
+    ) -> ExtractedDocument:
+        return extract_document(epub_path, config=config, debug_dir=debug_dir)
+
+    def extract_text_from_epub(
+        self,
+        epub_path: str | Path,
+        *,
+        config: ExtractorConfig | None = None,
+        debug_dir: str | Path | None = None,
+    ) -> str:
+        return extract_text_from_epub(epub_path, config=config, debug_dir=debug_dir)
 
 
 def extract_document(

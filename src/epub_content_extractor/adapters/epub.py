@@ -33,6 +33,7 @@ def read_epub_documents(epub_path: str | Path) -> list[HtmlDocument]:
     ]
     for chapter_index, item in enumerate(document_items):
         html = item.get_content().decode("utf-8", errors="replace")
+        html = strip_gutenberg_boilerplate_sections(html)
         if is_gutenberg_boilerplate_document(html):
             continue
         documents.append(HtmlDocument(html=html, chapter_index=chapter_index))
@@ -46,6 +47,13 @@ def validate_epub_path(path: Path) -> None:
         raise InputValidationError(f"input path is not a file: {path}")
     if path.suffix.lower() != ".epub":
         raise InputValidationError(f"input file must have .epub suffix: {path}")
+
+
+def strip_gutenberg_boilerplate_sections(html: str) -> str:
+    soup = BeautifulSoup(html, "lxml")
+    for element in soup.select(".pg-boilerplate"):
+        element.decompose()
+    return str(soup)
 
 
 def is_gutenberg_boilerplate_document(html: str) -> bool:

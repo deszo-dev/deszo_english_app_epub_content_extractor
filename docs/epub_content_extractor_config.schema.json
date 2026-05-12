@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.deszo.local/epub_content_extractor_config.v2.2.schema.json",
+  "title": "EpubContentExtractorConfig",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "format": "uri",
+      "description": "Optional tooling-only schema URI accepted in input config. Ignored during semantic config processing and omitted from extraction.config."
+    },
+    "include_front_matter_in_canonical_text": {
+      "type": "boolean",
+      "default": false
+    },
+    "include_back_matter_in_canonical_text": {
+      "type": "boolean",
+      "default": false
+    },
+    "include_footnotes_in_canonical_text": {
+      "type": "boolean",
+      "default": false
+    },
+    "include_chapter_titles_in_canonical_text": {
+      "type": "boolean",
+      "default": true
+    },
+    "include_section_titles_in_canonical_text": {
+      "type": "boolean",
+      "default": false
+    },
+    "max_epub_size_bytes": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 104857600,
+      "maximum": 1073741824
+    },
+    "max_html_document_size_bytes": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 10485760,
+      "maximum": 104857600
+    },
+    "max_text_block_chars": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 100000,
+      "maximum": 1000000
+    },
+    "pipeline_timeout_seconds": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 120,
+      "maximum": 3600
+    },
+    "html_parse_timeout_seconds": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 20,
+      "maximum": 300
+    },
+    "max_archive_uncompressed_bytes": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 524288000,
+      "maximum": 2147483648
+    },
+    "max_archive_entry_count": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 10000,
+      "maximum": 100000
+    },
+    "max_archive_compression_ratio": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 100,
+      "maximum": 1000
+    },
+    "max_toc_depth": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 8,
+      "maximum": 64
+    },
+    "max_diagnostic_count": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 1000,
+      "maximum": 100000
+    },
+    "max_output_json_bytes": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 524288000,
+      "maximum": 1073741824
+    },
+    "include_debug": {
+      "type": "boolean",
+      "default": false
+    }
+  }
+}
