@@ -208,7 +208,7 @@ def extract_epub_content(
     if resolved_config is None:
         return build_failed_result(
             code="invalid_config",
-            message="Config contains an unknown field and does not validate against v2.2 schema."
+            message="Config contains an unknown field and does not validate against v3.0 schema."
             if config_errors
             else "Invalid config.",
             diagnostics=[],
@@ -261,7 +261,7 @@ def extract_epub_content(
 
 def build_canonical_text(
     book: dict[str, object],
-    options: dict[str, object] | None = None,
+    options: "EpubCanonicalTextBuildOptions | dict[str, object] | None" = None,
 ) -> str:
     if not isinstance(book, dict):
         raise TypeError("book must be a dictionary")
@@ -270,17 +270,17 @@ def build_canonical_text(
     parts: list[str] = []
 
     for section in typed_list(book.get("front_matter")):
-        if resolved["include_front_matter_in_canonical_text"] and bool(section.get("included_in_canonical_text")):
-            parts.append(container_text(section, include_title=resolved["include_section_titles_in_canonical_text"]))
+        if resolved["include_front_matter"] and bool(section.get("included_in_canonical_text")):
+            parts.append(container_text(section, include_title=resolved["include_section_titles"]))
 
     for chapter in typed_list(book.get("chapters")):
-        parts.append(container_text(chapter, include_title=resolved["include_chapter_titles_in_canonical_text"]))
+        parts.append(container_text(chapter, include_title=resolved["include_chapter_titles"]))
 
     for section in typed_list(book.get("back_matter")):
-        if resolved["include_back_matter_in_canonical_text"] and bool(section.get("included_in_canonical_text")):
-            parts.append(container_text(section, include_title=resolved["include_section_titles_in_canonical_text"]))
+        if resolved["include_back_matter"] and bool(section.get("included_in_canonical_text")):
+            parts.append(container_text(section, include_title=resolved["include_section_titles"]))
 
-    if resolved["include_footnotes_in_canonical_text"]:
+    if resolved["include_footnotes"]:
         for footnote in typed_list(book.get("footnotes")):
             text = str(footnote.get("text", "")).strip()
             if text:
@@ -408,7 +408,7 @@ def extract_book(
 
     if not front_matter and not chapters and not back_matter:
         diagnostics.append(diagnostic("empty_readable_content", entity_type="book", field="chapters"))
-        raise DomainFailure("no_readable_content", "No readable content remains after applying v2.2 readability rules.")
+        raise DomainFailure("no_readable_content", "No readable content remains after applying v3.0 readability rules.")
 
     return {
         "title": metadata["title"],
@@ -473,23 +473,23 @@ def inspect_epub_archive(
         with zipfile.ZipFile(path) as archive:
             infos = archive.infolist()
             if len(infos) > config.max_archive_entry_count:
-                raise DomainFailure("epub_archive_security_violation", "Archive entry violates v2.2 path safety policy.")
+                raise DomainFailure("epub_archive_security_violation", "Archive entry violates v3.0 path safety policy.")
 
             total_uncompressed = 0
             total_compressed = 0
             for info in infos:
                 validate_archive_name(info.filename)
                 if info.flag_bits & 0x1:
-                    raise DomainFailure("epub_archive_security_violation", "Archive entry violates v2.2 path safety policy.")
+                    raise DomainFailure("epub_archive_security_violation", "Archive entry violates v3.0 path safety policy.")
                 total_uncompressed += info.file_size
                 total_compressed += max(info.compress_size, 1)
                 if total_uncompressed > config.max_archive_uncompressed_bytes:
-                    raise DomainFailure("epub_archive_security_violation", "Archive entry violates v2.2 path safety policy.")
+                    raise DomainFailure("epub_archive_security_violation", "Archive entry violates v3.0 path safety policy.")
                 if info.file_size / max(info.compress_size, 1) > config.max_archive_compression_ratio:
-                    raise DomainFailure("epub_archive_security_violation", "Archive entry violates v2.2 path safety policy.")
+                    raise DomainFailure("epub_archive_security_violation", "Archive entry violates v3.0 path safety policy.")
 
             if total_uncompressed / max(total_compressed, 1) > config.max_archive_compression_ratio:
-                raise DomainFailure("epub_archive_security_violation", "Archive entry violates v2.2 path safety policy.")
+                raise DomainFailure("epub_archive_security_violation", "Archive entry violates v3.0 path safety policy.")
 
             try:
                 container_xml = archive.read("META-INF/container.xml")
@@ -520,10 +520,10 @@ def inspect_epub_archive(
 def validate_archive_name(name: str) -> None:
     normalized = name.replace("\\", "/")
     if normalized.startswith("/") or normalized.startswith("//") or re.match(r"^[A-Za-z]:", normalized):
-        raise DomainFailure("epub_archive_security_violation", "Archive entry violates v2.2 path safety policy.")
+        raise DomainFailure("epub_archive_security_violation", "Archive entry violates v3.0 path safety policy.")
     parts = [part for part in normalized.split("/") if part]
     if any(part == ".." for part in parts):
-        raise DomainFailure("epub_archive_security_violation", "Archive entry violates v2.2 path safety policy.")
+        raise DomainFailure("epub_archive_security_violation", "Archive entry violates v3.0 path safety policy.")
 
 
 def parse_epub_version(opf_bytes: bytes) -> str | None:
@@ -768,12 +768,13 @@ def build_chapter(
     paragraphs: list[dict[str, object]],
     footnotes: list[dict[str, object]],
 ) -> dict[str, object]:
+    # v3.0: chapters[].paragraphs is removed from the public output.
+    # chapter.text is the authoritative body field and MUST NOT include the title.
     result: dict[str, object] = {
         "id": chapter_id,
         "chapter_number": chapter_number,
         "type": chapter_type,
         "text": "\n\n".join(paragraph["text"] for paragraph in paragraphs),
-        "paragraphs": paragraphs,
         "footnotes": footnotes,
     }
     if title:
@@ -918,9 +919,14 @@ def build_summary(
     total_text_chars = 0
     removed_section_count = 0
 
+    # v3.0: paragraph_count counts only public EpubParagraph objects, which
+    # live exclusively in front/back matter sections. Chapter paragraphs are
+    # internal and exposed only via chapter.text.
+    for section in [*front_matter, *back_matter]:
+        paragraph_count += len(typed_list(section.get("paragraphs")))
+
     for container in [*front_matter, *chapters, *back_matter]:
         text = str(container.get("text", ""))
-        paragraph_count += len([part for part in text.split("\n\n") if part.strip()]) if text else 0
         total_text_chars += len(text)
         if "included_in_canonical_text" in container and not bool(container.get("included_in_canonical_text")):
             removed_section_count += 1

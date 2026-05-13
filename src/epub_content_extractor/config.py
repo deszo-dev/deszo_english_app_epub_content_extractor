@@ -5,11 +5,11 @@ from typing import Any
 
 from jsonschema import Draft202012Validator, FormatChecker
 
-from .schema_utils import config_schema
+from .schema_utils import canonical_text_build_options_schema, config_schema
 
 
-SCHEMA_VERSION = "epub_content_extractor.v2.2"
-EXTRACTOR_VERSION = "2.2.0"
+SCHEMA_VERSION = "epub_content_extractor.v3.0"
+EXTRACTOR_VERSION = "3.0.0"
 
 
 @dataclass(slots=True)
@@ -38,6 +38,19 @@ class EpubContentExtractorConfig:
 
 DEFAULT_CONFIG = EpubContentExtractorConfig()
 
+
+@dataclass(frozen=True, slots=True)
+class EpubCanonicalTextBuildOptions:
+    include_front_matter: bool = False
+    include_back_matter: bool = False
+    include_footnotes: bool = False
+    include_chapter_titles: bool = True
+    include_section_titles: bool = False
+
+    def as_dict(self) -> dict[str, bool]:
+        return asdict(self)
+
+
 CANONICAL_TEXT_OPTION_KEYS = frozenset(
     {
         "include_front_matter_in_canonical_text",
@@ -47,6 +60,17 @@ CANONICAL_TEXT_OPTION_KEYS = frozenset(
         "include_section_titles_in_canonical_text",
     }
 )
+
+# Mapping between config-level option names and the canonical-builder option names.
+CONFIG_TO_BUILDER_OPTION = {
+    "include_front_matter_in_canonical_text": "include_front_matter",
+    "include_back_matter_in_canonical_text": "include_back_matter",
+    "include_footnotes_in_canonical_text": "include_footnotes",
+    "include_chapter_titles_in_canonical_text": "include_chapter_titles",
+    "include_section_titles_in_canonical_text": "include_section_titles",
+}
+
+BUILDER_OPTION_KEYS = frozenset(CONFIG_TO_BUILDER_OPTION.values())
 
 
 def default_config_dict() -> dict[str, object]:
@@ -85,18 +109,45 @@ def resolve_config(
     return EpubContentExtractorConfig(**merged), []
 
 
-def resolve_builder_options(options: dict[str, object] | None) -> dict[str, bool]:
-    resolved = {
-        key: bool(value)
-        for key, value in default_config_dict().items()
-        if key in CANONICAL_TEXT_OPTION_KEYS
+def default_builder_options_dict() -> dict[str, bool]:
+    """Return canonical-builder option defaults derived from the default config."""
+    config_defaults = default_config_dict()
+    return {
+        builder_key: bool(config_defaults[config_key])
+        for config_key, builder_key in CONFIG_TO_BUILDER_OPTION.items()
     }
+
+
+def resolve_builder_options(
+    options: EpubCanonicalTextBuildOptions | dict[str, object] | None,
+) -> dict[str, bool]:
+    """Return a fully-resolved builder option dict keyed by v3.0 short names.
+
+    Accepts:
+    - ``None`` → defaults from config schema;
+    - ``EpubCanonicalTextBuildOptions`` instance;
+    - dict with either v3.0 short keys (``include_front_matter``, etc.) or
+      legacy v2.2 config-level keys (``include_front_matter_in_canonical_text``).
+    Raises ``ValueError``/``TypeError`` for unknown keys or non-bool values.
+    """
+    resolved = default_builder_options_dict()
     if options is None:
         return resolved
+    if isinstance(options, EpubCanonicalTextBuildOptions):
+        resolved.update(options.as_dict())
+        return resolved
+    if not isinstance(options, dict):
+        raise TypeError(
+            "options must be None, dict, or EpubCanonicalTextBuildOptions"
+        )
     for key, value in options.items():
-        if key not in CANONICAL_TEXT_OPTION_KEYS:
+        if key in BUILDER_OPTION_KEYS:
+            builder_key = key
+        elif key in CANONICAL_TEXT_OPTION_KEYS:
+            builder_key = CONFIG_TO_BUILDER_OPTION[key]
+        else:
             raise ValueError(f"unsupported canonical text option: {key}")
         if not isinstance(value, bool):
             raise ValueError(f"canonical text option must be boolean: {key}")
-        resolved[key] = value
+        resolved[builder_key] = value
     return resolved

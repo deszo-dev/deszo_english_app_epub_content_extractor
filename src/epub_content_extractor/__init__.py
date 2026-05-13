@@ -3,7 +3,9 @@ from __future__ import annotations
 from .config import (
     EXTRACTOR_VERSION,
     SCHEMA_VERSION,
+    EpubCanonicalTextBuildOptions,
     EpubContentExtractorConfig,
+    default_builder_options_dict,
     default_config_dict,
 )
 from .exceptions import EpubReadError, ExtractionError, InputValidationError, PipelineInvariantError
@@ -25,6 +27,7 @@ from .runtime_metadata import (
 )
 
 __all__ = [
+    "EpubCanonicalTextBuildOptions",
     "EpubContentExtractorConfig",
     "EpubContentExtractorPipeline",
     "EpubReadError",
@@ -39,6 +42,7 @@ __all__ = [
     "StageRuntimeMetadata",
     "build_canonical_text",
     "canonical_json",
+    "default_builder_options_dict",
     "default_config_dict",
     "extract_document",
     "extract_epub_content",

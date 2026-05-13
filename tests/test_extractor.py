@@ -9,7 +9,12 @@ import pytest
 from ebooklib import epub
 from jsonschema import Draft202012Validator
 
-from epub_content_extractor import EpubContentExtractorPipeline, build_canonical_text, extract_epub_content
+from epub_content_extractor import (
+    EpubCanonicalTextBuildOptions,
+    EpubContentExtractorPipeline,
+    build_canonical_text,
+    extract_epub_content,
+)
 from epub_content_extractor.cli import main
 from epub_content_extractor.config import SCHEMA_VERSION, default_config_dict
 from epub_content_extractor.extractor import reset_fault_injection, set_fault_injection
@@ -99,12 +104,40 @@ def test_cli_extract_outputs_json(tmp_path: Path, capsys: pytest.CaptureFixture[
 def test_pipeline_runtime_metadata_is_exposed() -> None:
     metadata = EpubContentExtractorPipeline().runtime_metadata()
 
-    assert metadata.pipeline_contract_version == "2.2"
+    assert metadata.pipeline_contract_version == "3.0"
     assert set(metadata.stages) == {
         "content_extraction",
         "epub_document_reading",
         "html_block_extraction",
     }
+
+
+def test_canonical_text_options_toggle_chapter_titles(tmp_path: Path) -> None:
+    epub_path = build_minimal_epub(tmp_path / "options.epub")
+    result = extract_epub_content(epub_path)
+    book = result["book"]
+
+    with_titles = build_canonical_text(
+        book,
+        options=EpubCanonicalTextBuildOptions(include_chapter_titles=True),
+    )
+    without_titles = build_canonical_text(
+        book,
+        options=EpubCanonicalTextBuildOptions(include_chapter_titles=False),
+    )
+
+    assert with_titles.startswith("Chapter 1")
+    assert not without_titles.startswith("Chapter 1")
+    assert "Hello world." in without_titles
+
+
+def test_chapter_output_has_no_paragraphs_field(tmp_path: Path) -> None:
+    epub_path = build_minimal_epub(tmp_path / "no_paragraphs.epub")
+    result = extract_epub_content(epub_path)
+
+    for chapter in result["book"]["chapters"]:
+        assert "paragraphs" not in chapter
+        assert isinstance(chapter["text"], str)
 
 
 def test_config_schema_rejects_unknown_field() -> None:

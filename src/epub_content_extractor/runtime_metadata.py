@@ -61,9 +61,9 @@ def runtime_metadata() -> PipelineRuntimeMetadata:
     stages = [
         StageRuntimeMetadata(
             stage_name="epub_document_reading",
-            stage_contract_version="2.2",
-            output_schema_version="epub-html-documents.v2.2",
-            config_contract_version="epub-content-extractor-config.v2.2",
+            stage_contract_version="3.0",
+            output_schema_version="epub-html-documents.v3.0",
+            config_contract_version="epub-content-extractor-config.v3.0",
             module_version=pipeline_version,
             source_fingerprint=source_fingerprint_for_paths(
                 root,
@@ -72,7 +72,7 @@ def runtime_metadata() -> PipelineRuntimeMetadata:
                     package_root / "config.py",
                     package_root / "exceptions.py",
                     package_root / "extractor.py",
-                    schema_root / "epub_content_extractor_config.v2.2.schema.json",
+                    schema_root / "epub_content_extractor_config.v3.0.schema.json",
                 ],
             ),
             dependencies=[
@@ -83,9 +83,9 @@ def runtime_metadata() -> PipelineRuntimeMetadata:
         ),
         StageRuntimeMetadata(
             stage_name="html_block_extraction",
-            stage_contract_version="2.2",
-            output_schema_version="text-blocks.v2.2",
-            config_contract_version="epub-content-extractor-config.v2.2",
+            stage_contract_version="3.0",
+            output_schema_version="text-blocks.v3.0",
+            config_contract_version="epub-content-extractor-config.v3.0",
             module_version=pipeline_version,
             source_fingerprint=source_fingerprint_for_paths(
                 root,
@@ -106,9 +106,9 @@ def runtime_metadata() -> PipelineRuntimeMetadata:
         ),
         StageRuntimeMetadata(
             stage_name="content_extraction",
-            stage_contract_version="2.2",
-            output_schema_version="epub_content_extractor.v2.2",
-            config_contract_version="epub-content-extractor-config.v2.2",
+            stage_contract_version="3.0",
+            output_schema_version="epub_content_extractor.v3.0",
+            config_contract_version="epub-content-extractor-config.v3.0",
             module_version=pipeline_version,
             source_fingerprint=source_fingerprint_for_paths(
                 root,
@@ -117,10 +117,10 @@ def runtime_metadata() -> PipelineRuntimeMetadata:
                     package_root / "exceptions.py",
                     package_root / "extractor.py",
                     package_root / "schema_utils.py",
-                    schema_root / "epub_content_extractor.v2.2.schema.json",
-                    schema_root / "epub_content_extractor_config.v2.2.schema.json",
-                    schema_root / "epub_content_extractor_diagnostic_registry.v2.2.json",
-                    schema_root / "epub_content_extractor_error_registry.v2.2.json",
+                    schema_root / "epub_content_extractor.v3.0.schema.json",
+                    schema_root / "epub_content_extractor_config.v3.0.schema.json",
+                    schema_root / "epub_content_extractor_diagnostic_registry.v3.0.json",
+                    schema_root / "epub_content_extractor_error_registry.v3.0.json",
                 ],
             ),
             dependencies=[
@@ -134,7 +134,7 @@ def runtime_metadata() -> PipelineRuntimeMetadata:
     return PipelineRuntimeMetadata(
         pipeline_name="epub_content_extractor",
         pipeline_version=pipeline_version,
-        pipeline_contract_version="2.2",
+        pipeline_contract_version="3.0",
         stages={stage.stage_name: stage for stage in stages},
     )
 
