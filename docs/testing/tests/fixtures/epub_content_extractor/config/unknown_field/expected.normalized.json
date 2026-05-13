@@ -1,14 +1,14 @@
 {
-  "schema_version": "epub_content_extractor.v2.2",
+  "schema_version": "epub_content_extractor.v3.0",
   "status": "failed",
   "error": {
     "code": "invalid_config",
-    "message": "Config contains an unknown field and does not validate against v2.2 schema.",
+    "message": "Config contains an unknown field and does not validate against v3.0 schema.",
     "recoverable": false
   },
   "diagnostics": [],
   "extraction": {
-    "extractor_version": "2.2.0",
+    "extractor_version": "3.0.0",
     "started_at": "1970-01-01T00:00:00Z",
     "finished_at": "1970-01-01T00:00:00Z",
     "duration_ms": 0,

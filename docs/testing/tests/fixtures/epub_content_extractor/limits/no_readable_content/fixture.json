@@ -1,12 +1,56 @@
 {
-  "fixture_id": "F027_NO_READABLE_CONTENT",
+  "fixture_id": "F010_NO_READABLE_CONTENT",
   "kind": "valid_epub",
-  "purpose": "EPUB with only non-readable/removed content must fail as no_readable_content.",
+  "purpose": "EPUB with only navigation/page-number/decorative content must fail as no_readable_content.",
   "generator": {
-    "tool": "contract_fixture_spec.v2.2",
-    "version_policy": "Generator MUST produce byte-stable ZIP entries with fixed ordering and timestamps.",
-    "runtime_input": "input.epub",
-    "source_spec": "This fixture is a manually approved v2.2 contract baseline; generated binary inputs are not committed."
+    "tool": "contract_fixture_spec.v3.0",
+    "version_policy": "Generator MUST produce byte-stable files from listed source_spec fields with fixed ordering, timestamps, compression, and UTF-8 encoding where applicable.",
+    "runtime_input": "no_readable_content.epub",
+    "source_spec": {
+      "format": "zip_entries",
+      "determinism": {
+        "zip_entry_order": "listed_order",
+        "zip_entry_timestamp": "2020-01-01T00:00:00Z",
+        "compression": "stored"
+      },
+      "zip_entries": [
+        {
+          "path": "mimetype",
+          "content_kind": "text",
+          "content": "application/epub+zip",
+          "media_type": "application/epub+zip"
+        },
+        {
+          "path": "META-INF/container.xml",
+          "content_kind": "text",
+          "content": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<container version=\"1.0\" xmlns=\"urn:oasis:names:tc:opendocument:xmlns:container\">\n  <rootfiles><rootfile full-path=\"OEBPS/content.opf\" media-type=\"application/oebps-package+xml\"/></rootfiles>\n</container>\n",
+          "media_type": "application/xml"
+        },
+        {
+          "path": "OEBPS/content.opf",
+          "content_kind": "text",
+          "content": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<package xmlns=\"http://www.idpf.org/2007/opf\" version=\"3.0\" unique-identifier=\"bookid\">\n  <metadata xmlns:dc=\"http://purl.org/dc/elements/1.1/\">\n    <dc:identifier id=\"bookid\">urn:uuid:00000000-0000-4000-8000-000000000010</dc:identifier>\n    <dc:title>No Readable Content EPUB</dc:title>\n    <dc:language>en</dc:language>\n  </metadata>\n  <manifest>\n    <item id=\"nav\" href=\"nav.xhtml\" properties=\"nav\" media-type=\"application/xhtml+xml\"/>\n    <item id=\"chap1\" href=\"chapter_1.xhtml\" media-type=\"application/xhtml+xml\"/>\n  </manifest>\n  <spine><itemref idref=\"chap1\"/></spine>\n</package>\n",
+          "media_type": "application/oebps-package+xml"
+        },
+        {
+          "path": "OEBPS/nav.xhtml",
+          "content_kind": "text",
+          "content": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<html xmlns=\"http://www.w3.org/1999/xhtml\" xmlns:epub=\"http://www.idpf.org/2007/ops\"><body><nav epub:type=\"toc\"><ol><li><a href=\"chapter_1.xhtml\">Navigation</a></li></ol></nav></body></html>\n",
+          "media_type": "application/xhtml+xml"
+        },
+        {
+          "path": "OEBPS/chapter_1.xhtml",
+          "content_kind": "text",
+          "content": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<html xmlns=\"http://www.w3.org/1999/xhtml\"><head><title>Navigation</title></head><body>\n  <nav><a href=\"nav.xhtml\">Previous</a> <a href=\"nav.xhtml\">Next</a></nav>\n  <p>1</p>\n  <p>2</p>\n  <p>***</p>\n</body></html>\n",
+          "media_type": "application/xhtml+xml"
+        }
+      ],
+      "expected_runtime_file": {
+        "sha256": "128c5f97c469a29b343cacaccdc95e97fea4c167a6c349e92131aeb24b68badc",
+        "size_bytes": 1940,
+        "file_name": "no_readable_content.epub"
+      }
+    }
   },
   "expected_artifacts": {
     "config": "config.json",
@@ -14,6 +58,7 @@
   },
   "notes": [
     "expected.normalized.json uses schema-preserving normalized timestamps.",
-    "Do not replace with implementation output unless the delta is reviewed as a contract change."
+    "Do not replace with implementation output unless the delta is reviewed as a contract change.",
+    "runtime input files are generated from this machine-readable source_spec; binary EPUB/ZIP files are never committed."
   ]
 }

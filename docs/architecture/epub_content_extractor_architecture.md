@@ -1,4 +1,4 @@
-# epub_content_extractor — Architecture and Contract v2.2
+# epub_content_extractor — Architecture and Contract v3.0
 
 ## 1. Purpose
 
@@ -13,7 +13,7 @@ The module does **not** return plain text as the primary output. The official ou
 - front matter;
 - chapters / acts / scenes / parts;
 - back matter;
-- paragraphs;
+- front/back matter paragraphs;
 - footnotes and endnotes;
 - table of contents;
 - lightweight asset metadata;
@@ -111,11 +111,13 @@ Rules:
 - EPUB metadata must not override `book.language`;
 - if EPUB metadata language is missing, extraction still succeeds and emits `metadata_language_missing` with severity `info`;
 - if EPUB metadata language is present and is not English-like, extraction still produces `book.language = "en"` and emits diagnostic `metadata_language_conflicts_with_contract` with severity `warning`;
-- actual non-English content quality is outside the v2.2 contract;
+- actual non-English content quality is outside the v3.0 contract;
 - if an EPUB contains non-English content but metadata language is missing, extraction still follows the normal English-only contract and must not emit a content-language diagnostic because content language detection is not performed;
-- if actual non-English content is extracted, no diagnostic is required unless a future optional language detector is explicitly enabled outside the v2.2 default contract.
+- if actual non-English content is extracted, no diagnostic is required unless a future optional language detector is explicitly enabled outside the v3.0 default contract.
 
 Rationale: this extractor is part of an English-learning pipeline. The language is a product-level invariant, not a value inferred from the EPUB.
+
+Note: `book.language = "en"` does not certify that every extracted sentence is English; it is the fixed product contract value.
 
 ### 3.3 English-like metadata language criteria
 
@@ -155,7 +157,7 @@ result = extract_epub_content(
 
 Contract:
 
-- `input_path` must point to a local `.epub` file.
+- `input_path` must point to a local readable file. The `.epub` filename extension is advisory; EPUB validity is determined from file contents and EPUB package/security checks.
 - `config` is optional.
 - The function must return an `EpubContentExtractionResult` object for expected extraction outcomes.
 - The function must not raise exceptions for normal domain failures such as invalid config, invalid EPUB, unreadable EPUB, empty readable content, or parse failure.
@@ -165,9 +167,9 @@ Contract:
 
 ### 4.1.1 `EpubContentExtractorConfig` JSON Schema
 
-The official config schema is `schema/epub_content_extractor_config.v2.2.schema.json`.
+The official config schema is `schema/epub_content_extractor_config.v3.0.schema.json`.
 
-This Markdown schema block is an explanatory copy of the canonical file. It MUST NOT be maintained as an independent schema source. Release validation MUST fail if this inline copy implies weaker validation than `schema/epub_content_extractor_config.v2.2.schema.json`, especially for the tooling-only `$schema` URI constraints.
+This Markdown schema block is an explanatory copy of the canonical file. It MUST NOT be maintained as an independent schema source. Release validation MUST fail if this inline copy implies weaker validation than `schema/epub_content_extractor_config.v3.0.schema.json`, especially for the tooling-only `$schema` URI constraints.
 
 
 The schema is closed: unknown config fields are invalid, except for the tooling-only input field `$schema`, which is explicitly allowed and ignored semantically.
@@ -175,7 +177,7 @@ The schema is closed: unknown config fields are invalid, except for the tooling-
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.deszo.local/epub_content_extractor_config.v2.2.schema.json",
+  "$id": "https://schemas.deszo.local/epub_content_extractor_config.v3.0.schema.json",
   "title": "EpubContentExtractorConfig",
   "type": "object",
   "additionalProperties": false,
@@ -316,7 +318,7 @@ Rules:
 - Numeric config values MUST be JSON numbers with integer values. String units such as `"100MB"`, floats, `NaN`, and infinities are invalid.
 - Resource limit fields have hard schema maximums. Values above those maximums are invalid config, even if the host machine could theoretically process them.
 
-Hard maximums for v2.2:
+Hard maximums for v3.0:
 
 | Config field | Maximum | Rationale |
 |---|---:|---|
@@ -338,7 +340,7 @@ The public library accepts config as one of:
 
 - `None`;
 - a JSON-serializable `dict[str, object]`;
-- an `EpubContentExtractorConfig` dataclass or equivalent typed model whose serialized form validates against `schema/epub_content_extractor_config.v2.2.schema.json`.
+- an `EpubContentExtractorConfig` dataclass or equivalent typed model whose serialized form validates against `schema/epub_content_extractor_config.v3.0.schema.json`.
 
 Rules:
 
@@ -349,7 +351,7 @@ Rules:
 - `$schema` MUST be ignored by semantic config processing.
 - `$schema` MUST NOT appear in `extraction.config`.
 - `$schema` MUST NOT affect defaults, validation order, diagnostics, extraction behavior, or output.
-- The config object may include optional `config_version` only if the config schema explicitly allows it in a future version. In v2.2 it is not allowed.
+- The config object may include optional `config_version` only if the config schema explicitly allows it in a future version. In v3.0 it is not allowed.
 - Unknown config fields other than `$schema` are invalid because the schema is closed with `additionalProperties: false`.
 - Config validation MUST happen before EPUB path validation and before EPUB parsing.
 - Config defaults MUST be applied only by application code after validation succeeds, except for the invalid-config failed-result snapshot policy below.
@@ -373,7 +375,9 @@ Rules:
 
 #### 4.1.4 EPUB input validation, symlink, and permission policy
 
-The `.epub` filename extension is not sufficient to prove EPUB validity.
+The `.epub` filename extension is advisory and is not a validation criterion in v3.0.
+
+A file with a non-`.epub` extension MAY be accepted if it is a readable ZIP-based EPUB container and all EPUB package and archive-security checks pass. A file with a `.epub` extension MUST still fail with `input_not_epub` if it cannot be opened as a ZIP-based EPUB container.
 
 Validation order after config validation:
 
@@ -406,7 +410,7 @@ Rules:
 - An empty string path, whitespace-only string path, or path containing a NUL character is treated as invalid local path input and MUST produce a structured failed result with `error.code = "input_file_not_found"` without exposing the raw path.
 - Programmer errors are not normal extraction outcomes and are not represented as `EpubContentExtractionResult`.
 
-The v2.2 public API does not expose schema-validation helper functions as stable API. Callers that need validation should use the published JSON Schema artifacts directly.
+The v3.0 public API does not expose schema-validation helper functions as stable API. Callers that need validation should use the published JSON Schema artifacts directly.
 
 ### 4.2 Canonical text builder
 
@@ -512,7 +516,7 @@ Rules:
 - If the destination path cannot be replaced atomically, the CLI MUST fail with exit `3` rather than risk a partial production JSON file.
 - If stdout is the selected output channel and the stdout pipe is closed, CLI exits `3` and may emit only a concise safe message to stderr if stderr is available.
 - `max_output_json_bytes` is measured as the exact number of UTF-8 bytes in the final JSON representation selected for output, including pretty-print whitespace when `--pretty` is used. Compact and pretty output must parse to identical objects, but they may have different byte lengths for this limit.
-- JSON serialization is part of the extraction-result contract. If serialization fails because of an implementation defect, CLI exits `99`. If serialization would exceed `max_output_json_bytes`, extraction fails with `internal_error` in v2.2 because no dedicated `output_json_too_large` error code exists. This is a known v2.2 compatibility compromise; a future schema version SHOULD add `output_json_too_large` as a dedicated fatal error code.
+- JSON serialization is part of the extraction-result contract. If serialization fails because of an implementation defect, CLI exits `99`. If serialization would exceed `max_output_json_bytes`, extraction fails with `internal_error` in v3.0 because no dedicated `output_json_too_large` error code exists. This is a known v3.0 compatibility compromise; a future schema version SHOULD add `output_json_too_large` as a dedicated fatal error code.
 
 Examples:
 
@@ -548,7 +552,7 @@ type EpubExtractionStatus = "succeeded" | "failed";
 type DiagnosticSeverity = "info" | "warning" | "error";
 
 interface EpubContentExtractionResult {
-  schema_version: "epub_content_extractor.v2.2";
+  schema_version: "epub_content_extractor.v3.0";
   status: EpubExtractionStatus;
 
   /** Present only when status === "succeeded". */
@@ -565,7 +569,7 @@ interface EpubContentExtractionResult {
 }
 ```
 
-The official result schema is `schema/epub_content_extractor.v2.2.schema.json`.
+The official result schema is `schema/epub_content_extractor.v3.0.schema.json`.
 
 Rules:
 
@@ -577,7 +581,7 @@ Rules:
 
 ### 6.1 Normative result JSON Schema requirement
 
-`schema/epub_content_extractor.v2.2.schema.json` is a required normative artifact for v2.2.
+`schema/epub_content_extractor.v3.0.schema.json` is a required normative artifact for v3.0.
 
 Code generation, release builds, and contract tests MUST NOT rely only on the TypeScript-like interfaces in this document. The JSON Schema MUST define:
 
@@ -591,30 +595,52 @@ Code generation, release builds, and contract tests MUST NOT rely only on the Ty
 - array item schemas;
 - debug field openness policy.
 
-A release is invalid if examples in this document do not validate against `schema/epub_content_extractor.v2.2.schema.json`.
+A release is invalid if examples in this document do not validate against `schema/epub_content_extractor.v3.0.schema.json`.
 
 ### 6.1.1 Normative schema and registry artifact locations
 
-The normative machine-readable artifacts for contract version v2.2 MUST be stored at these repository paths:
+The normative machine-readable artifacts for contract version v3.0 MUST be stored at these repository paths:
 
 ```text
-schema/epub_content_extractor.v2.2.schema.json
-schema/epub_content_extractor_config.v2.2.schema.json
-schema/epub_content_extractor_diagnostic_registry.v2.2.json
-schema/epub_content_extractor_error_registry.v2.2.json
-schema/epub_content_extractor_diagnostic_registry.v2.2.schema.json
-schema/epub_content_extractor_error_registry.v2.2.schema.json
-schema/epub_content_extractor_fixture_manifest.v2.2.schema.json
-schema/epub_content_extractor_golden_acceptance_manifest.v2.2.schema.json
+schema/epub_content_extractor.v3.0.schema.json
+schema/epub_content_extractor_config.v3.0.schema.json
+schema/epub_content_extractor_diagnostic_registry.v3.0.json
+schema/epub_content_extractor_error_registry.v3.0.json
+schema/epub_content_extractor_diagnostic_registry.v3.0.schema.json
+schema/epub_content_extractor_error_registry.v3.0.schema.json
+schema/epub_content_extractor_fixture_manifest.v3.0.schema.json
+schema/epub_content_extractor_golden_acceptance_manifest.v3.0.schema.json
+schema/epub_canonical_text_build_options.v3.0.schema.json
+schema/epub_content_extractor_test_coverage_manifest.v3.0.schema.json
 ```
 
 The golden-output acceptance manifest is stored under:
 
 ```text
-docs/testing/epub_content_extractor_golden_acceptance_manifest.v2.2.json
+docs/testing/epub_content_extractor_golden_acceptance_manifest.v3.0.json
 ```
 
-The files under `docs/architecture/` are explanatory documentation unless they are exact synchronized copies of the files above. CI, release validation, and generated tests MUST load schemas and registries from the `schema/` directory.
+The test coverage manifest is stored under:
+
+```text
+docs/testing/epub_content_extractor_test_coverage_manifest.v3.0.json
+```
+
+The canonical text builder options schema is stored under:
+
+```text
+schema/epub_canonical_text_build_options.v3.0.schema.json
+schema/epub_content_extractor_test_coverage_manifest.v3.0.schema.json
+```
+
+Artifact path resolution policy:
+
+- all release-validation paths are resolved from the explicit repository root passed as `--repo-root`;
+- the prose shorthand `schema/<file>` means `docs/architecture/schema/<file>` relative to repository root;
+- executable test fixtures under `tests/fixtures/...` are repository-root-relative and are not resolved through the `schema/` alias;
+- release validation MUST fail when a `schema/<file>` prose reference cannot be resolved through this alias policy.
+
+The files under `docs/architecture/` are explanatory documentation unless they are exact synchronized copies of the files above. CI, release validation, and generated tests MUST load schemas and registries from `docs/architecture/schema/` via the `schema/` alias policy.
 
 ### Config `$schema` URI assertion policy
 
@@ -645,7 +671,7 @@ Rules:
 - Empty strings MUST NOT be emitted for required text-bearing fields such as paragraph `text`, chapter `text`, section `text`, and footnote `text`. Empty text-bearing units are removed before final output.
 - Empty arrays are emitted as `[]` when the array field is required.
 
-Specific v2.2 policy:
+Specific v3.0 policy:
 
 - `book.title` and `book.subtitle` are required and nullable.
 - `metadata.publisher`, `metadata.published_at`, `metadata.modified_at`, `metadata.description`, and `metadata.rights` are required and nullable.
@@ -667,9 +693,9 @@ When `status === "succeeded"`:
 
 A result with `status = "succeeded"` MUST contain at least one readable content container.
 
-Readable content containers in v2.2 are:
+Readable content containers in v3.0 are:
 
-- a chapter with `paragraphs.length > 0` and `text.length > 0`;
+- a chapter with `text.length > 0`;
 - a front/back matter section with `paragraphs.length > 0` and `text.length > 0`.
 
 A result with `status = "succeeded"` and no readable content container is invalid. It MUST instead be emitted as `status = "failed"` with `error.code = "no_readable_content"` and `error.recoverable = false`.
@@ -679,7 +705,7 @@ Rules:
 - `chapter.text` MUST have `minLength: 1` in the result schema.
 - `section.text` MUST have `minLength: 1` in the result schema unless a future schema version explicitly introduces structural-only section types.
 - A successful result MAY contain only front matter or only back matter when that section is the only readable book content.
-- A successful result MUST NOT rely only on book-level or detached footnotes as readable content. At least one chapter or front/back matter section must contain non-empty paragraph text.
+- A successful result MUST NOT rely only on book-level or detached footnotes as readable content. At least one chapter must contain non-empty `chapter.text`, or at least one front/back matter section must contain non-empty paragraph text.
 - Schema validation and contract tests MUST reject successful outputs with no readable content container.
 
 ### 6.4 Failure invariant
@@ -954,7 +980,6 @@ interface EpubChapter {
   /** Full clean chapter text. Does not include title. */
   text: string;
 
-  paragraphs: EpubParagraph[];
   footnotes: EpubFootnote[];
 }
 ```
@@ -966,8 +991,10 @@ Rules:
 - `chapter.id` must not expose EPUB href, spine id, or raw file path.
 - `chapter.title` is stored separately.
 - `chapter.text` must not include `chapter.title`.
-- `chapter.text` must be deterministically buildable from `chapter.paragraphs[].text` using `"\n\n"`.
-- `chapter.text` and every `chapter.paragraphs[].text` MUST be non-empty after cleanup. Empty chapters are removed rather than emitted.
+- `chapter.text` is the authoritative public chapter body field.
+- The production schema MUST NOT include `paragraphs` inside `chapters[]` items.
+- Chapter paragraph-like segmentation MAY exist internally for extraction, cleanup, footnote linking, and debug output, but it MUST NOT appear in normal production output.
+- `chapter.text` MUST be non-empty after cleanup. Empty chapters are removed rather than emitted.
 - Footnote text must not be included in `chapter.text`.
 
 ### 11.1 Chapter detection
@@ -992,14 +1019,17 @@ interface EpubParagraph {
 
 Rules:
 
-- Paragraphs are the primary textual units inside chapters and sections.
+- Public `EpubParagraph` objects are emitted only inside `front_matter[].paragraphs[]` and `back_matter[].paragraphs[]`.
+- Chapter paragraph segmentation is internal in v3.0 and is represented publicly only by `chapter.text`.
+- The main schema MUST NOT include `chapters[].paragraphs`.
 - The main schema must not include source offsets, raw block ids, scoring, classification features, or confidence values.
-- `sentences[]` are not part of v2.2 output.
+- `sentences[]` are not part of v3.0 output.
 - `sentence_count` is not part of the main schema.
 - `has_dialogue` is not part of the main schema.
 - Sentence segmentation belongs to downstream NLP modules.
-- Lists (`li`) should be preserved as separate paragraphs when they contain meaningful readable text.
-- Broken paragraphs may be merged during post-processing.
+- Lists (`li`) in front/back matter should be preserved as separate paragraphs when they contain meaningful readable text.
+- Lists (`li`) in chapters should be preserved as readable text inside `chapter.text` without exposing chapter paragraph objects.
+- Broken paragraph-like blocks may be merged during post-processing.
 
 ---
 
@@ -1029,7 +1059,7 @@ Rules:
 - `paragraph_number` is optional for every footnote, including chapter-level footnotes.
 - `paragraph_number` must be emitted only when the extractor can link the footnote to a specific final paragraph.
 
-Mandatory marker forms for v2.2:
+Mandatory marker forms for v3.0:
 
 - bracketed numeric markers: `[1]`, `[2]`, `[123]`;
 - parenthesized numeric markers: `(1)`, `(2)`, `(123)`;
@@ -1043,9 +1073,10 @@ Mandatory marker forms for v2.2:
 
 Rules:
 
-- Numbering is 1-based inside the owning `chapter.paragraphs[]` or `section.paragraphs[]` array.
-- If an inline marker was removed from a paragraph, `paragraph_number` points to the final paragraph that contained that marker before removal.
-- If several source paragraphs are merged, the footnote points to the merged final paragraph.
+- For section-owned footnotes, numbering is 1-based inside the owning `section.paragraphs[]` array.
+- For chapter-owned footnotes, numbering is 1-based inside the final internal chapter paragraph-like sequence used to assemble `chapter.text`; this sequence is not exposed as `chapters[].paragraphs` in production output.
+- If an inline marker was removed from a paragraph-like unit, `paragraph_number` points to the final unit that contained that marker before removal.
+- If several source paragraph-like units are merged, the footnote points to the merged final unit.
 - If the owner is known but no exact paragraph link is known, omit `paragraph_number` without failing extraction.
 
 ### 13.2 Duplicate markers
@@ -1155,14 +1186,16 @@ Default public options:
 }
 ```
 
+The machine-readable public options contract is `schema/epub_canonical_text_build_options.v3.0.schema.json`. The schema is closed with `additionalProperties: false`; tests and generated clients SHOULD use it instead of inferring option names from prose.
+
 Public option merging rules:
 
 - `options = None` is equivalent to `{}`.
 - Missing option keys use the defaults above.
 - Every provided option value MUST be a boolean.
 - Unknown option keys MUST raise `ValueError`.
-- `separator_between_paragraphs` and `separator_between_chapters` are internal v2.2 constants, not accepted public option keys.
-- Passing separator keys MUST raise `ValueError` in v2.2.
+- `separator_between_paragraphs` and `separator_between_chapters` are internal v3.0 constants, not accepted public option keys.
+- Passing separator keys MUST raise `ValueError` in v3.0.
 - The fixed paragraph separator is `"\n\n"`.
 - The fixed chapter separator is `"\n\n\n"`.
 - The builder MUST NOT mutate `book` or `options`.
@@ -1170,8 +1203,10 @@ Public option merging rules:
 
 General builder rules:
 
-- The builder must join paragraph text with `"\n\n"`.
-- The builder must join chapters with `"\n\n\n"`.
+- The builder must use `chapter.text` directly for chapter body content.
+- The builder must use `section.text` directly for front/back matter body content.
+- The builder must join top-level canonical text containers with `"\n\n\n"`.
+- When a title is included, the title and its body must be separated by `"\n\n"`.
 - The builder must include titles only when corresponding title options are enabled.
 - The builder must not mutate the book object.
 - The builder must be deterministic.
@@ -1188,7 +1223,7 @@ General builder rules:
 | `include_chapter_titles_in_canonical_text` | `include_chapter_titles` |
 | `include_section_titles_in_canonical_text` | `include_section_titles` |
 
-`separator_between_paragraphs` and `separator_between_chapters` use builder defaults in v2.2 and are not configurable through extractor config.
+`separator_between_paragraphs` and `separator_between_chapters` use builder defaults in v3.0 and are not configurable through extractor config.
 
 `EpubBookSection.included_in_canonical_text` represents structural eligibility, not the effective result of a particular builder invocation.
 
@@ -1209,9 +1244,9 @@ Rules:
 - The builder MUST NOT emit diagnostics.
 - The builder MUST NOT mutate `book`.
 - The builder MUST be deterministic for the same `book` and `options`.
-- `book` MUST contain the required v2.2 fields needed by the builder, including `front_matter`, `chapters`, `back_matter`, and `footnotes`. Missing required fields are `ValueError`.
+- `book` MUST contain the required v3.0 fields needed by the builder, including `front_matter`, `chapters`, `back_matter`, and `footnotes`. Missing required fields are `ValueError`.
 - Unknown option fields are `ValueError`.
-- Custom separators are not accepted in v2.2 public options; callers must use the fixed default separators.
+- Custom separators are not accepted in v3.0 public options; callers must use the fixed default separators.
 
 Examples:
 
@@ -1286,7 +1321,7 @@ Rules:
 
 - Extraction info may describe high-level extraction metadata.
 - It must not expose raw blocks, source offsets, scoring internals, or raw HTML unless debug mode is explicitly enabled.
-- `extractor_version` must be SemVer 2.0.0 compatible without a leading `v`, for example `2.2.0`, `2.2.1`, or `2.2.0-beta.1`.
+- `extractor_version` must be SemVer 2.0.0 compatible without a leading `v`, for example `3.0.0`, `3.0.1`, or `3.0.0-beta.1`.
 - `started_at` and `finished_at` must be UTC RFC-3339 timestamps with `Z` when a structured result object is emitted.
 - `finished_at` and `duration_ms` must always be present in emitted failed results.
 - `duration_ms` is a non-negative integer.
@@ -1308,7 +1343,8 @@ Rules:
 - `total_text_chars` includes preserved front matter and back matter even when those sections are excluded from canonical text.
 - `total_text_chars` excludes book-level, chapter-level, and section-level footnote text because footnotes are stored separately.
 - `total_text_chars` excludes removed sections and dropped blocks.
-- `paragraph_count` is the total number of paragraphs in `front_matter[].paragraphs[]`, `chapters[].paragraphs[]`, and `back_matter[].paragraphs[]`.
+- `paragraph_count` is the total number of emitted `EpubParagraph` objects in `front_matter[].paragraphs[]` and `back_matter[].paragraphs[]`.
+- `paragraph_count` excludes chapter paragraph-like units because `chapters[].paragraphs` is not part of the v3.0 production schema.
 - `paragraph_count` excludes footnotes.
 - `footnote_count` is the total number of footnotes in `book.footnotes[]`, every `chapter.footnotes[]`, and every front/back matter `section.footnotes[]`.
 
@@ -1420,9 +1456,9 @@ Rules:
 
 ### 18.1 Diagnostic code matrix
 
-The table below documents every diagnostic code carried by the v2.2 result schema. Whether a code may be emitted by production code is controlled by the normative diagnostic registry.
+The table below documents every diagnostic code carried by the v3.0 result schema. Whether a code may be emitted by production code is controlled by the normative diagnostic registry.
 
-A diagnostic code with `coverage_status = "reserved_not_emitted_by_default"` is schema-reserved and MUST NOT be emitted by production code in v2.2, even if it appears in this matrix for schema completeness. A release-candidate registry MUST NOT contain `coverage_status = "requires_contract_decision"`; that status is allowed only in draft registries before a release decision is made.
+A diagnostic code with `coverage_status = "reserved_not_emitted_by_default"` is schema-reserved and MUST NOT be emitted by production code in v3.0, even if it appears in this matrix for schema completeness. A release-candidate registry MUST NOT contain `coverage_status = "requires_contract_decision"`; that status is allowed only in draft registries before a release decision is made.
 
 Messages are human-readable and are not stable API. `code`, `severity`, deterministic ordering, count behavior, and registry coverage status are stable API.
 
@@ -1472,7 +1508,7 @@ Deterministic ordering key:
 
 ### 18.2 Diagnostic severity invariant
 
-Each diagnostic code has exactly one valid severity in v2.2.
+Each diagnostic code has exactly one valid severity in v3.0.
 
 A production result is invalid if any diagnostic uses a severity different from the Diagnostic code matrix. Human-readable diagnostic `message` remains non-stable API.
 
@@ -1491,8 +1527,8 @@ The Markdown matrices in Sections 18 and 19 are human-readable views of normativ
 Normative registry files:
 
 ```text
-schema/epub_content_extractor_diagnostic_registry.v2.2.json
-schema/epub_content_extractor_error_registry.v2.2.json
+schema/epub_content_extractor_diagnostic_registry.v3.0.json
+schema/epub_content_extractor_error_registry.v3.0.json
 ```
 
 Each diagnostic registry entry MUST contain:
@@ -1533,6 +1569,7 @@ Each fatal error registry entry MUST contain:
   "cli_exit_code": 1,
   "cli_json_emission": "yes",
   "when_emitted": "File cannot be opened as a ZIP-based EPUB container.",
+  "coverage_status": "integration_fixture",
   "coverage_test_ids": ["TC-013"]
 }
 ```
@@ -1586,7 +1623,7 @@ Rules:
 - EPUB without metadata is not fatal.
 - EPUB without TOC is not fatal.
 - EPUB with missing language metadata is not fatal because output language is fixed to `"en"`.
-- `recoverable` MUST be `false` for every `EpubExtractionErrorCode` in v2.2. The field is reserved for future versions and remains stable in shape.
+- `recoverable` MUST be `false` for every `EpubExtractionErrorCode` in v3.0. The field is reserved for future versions and remains stable in shape.
 - `output_write_failed` is a reserved structured error code for future/internal output-writer integrations that construct a result object before attempting output persistence. The canonical CLI usually cannot serialize this code to the selected output channel when the output channel itself failed. The canonical `extract_epub_content()` library function MUST NOT return `output_write_failed`, because it does not persist output.
 - Error messages are human-readable and are not stable API. `code`, `recoverable`, status, CLI exit mapping, and JSON emission policy are stable API.
 
@@ -1661,12 +1698,12 @@ Normative package naming:
 
 Supported runtime:
 
-- Python `>=3.11,<3.14` for v2.2.
+- Python `>=3.11,<3.14` for v3.0.
 - The implementation MUST run on Linux, macOS, and Windows when dependencies are available.
 
 Dependency policy:
 
-- `ebooklib`, `beautifulsoup4`, `lxml`, `regex`, `ftfy`, and `jsonschema` are production dependencies in v2.2, not optional output-changing enhancements.
+- `ebooklib`, `beautifulsoup4`, `lxml`, `regex`, `ftfy`, and `jsonschema` are production dependencies in v3.0, not optional output-changing enhancements.
 - Dependency major/minor versions MUST be pinned in lockfiles for reproducible fixture outputs and release validation. Patch versions SHOULD also be pinned unless the project uses a controlled update process with fixture regeneration.
 - A missing production dependency is an installation/runtime defect and maps to `internal_error` if a structured result can be constructed.
 - Parser fallback is allowed only when it does not change production output for contract fixtures. If fallback changes output, it must be treated as a versioned implementation change and covered by regression tests.
@@ -1997,7 +2034,7 @@ Rules:
 - The extractor MUST NOT resolve external URLs referenced from HTML, CSS, metadata, manifest items, SVG, or scripts. External references are ignored as resources and are not fatal unless an implementation attempts forbidden external resolution.
 - Archive safety checks MUST run immediately after ZIP open and before OPF/package discovery, XML parsing, HTML parsing, asset inspection, or manifest item processing.
 - The extractor MUST validate ZIP central directory consistency before trusting entry metadata.
-- Encrypted ZIP entries are unsupported in v2.2 and MUST fail with `epub_archive_security_violation`.
+- Encrypted ZIP entries are unsupported in v3.0 and MUST fail with `epub_archive_security_violation`.
 - The extractor MUST normalize every archive entry path using POSIX-style EPUB archive semantics before use.
 - The extractor MUST reject archive entries whose normalized path escapes the EPUB container root.
 - Absolute paths, drive-letter paths, UNC paths, backslash-based traversal, and `..` path traversal are invalid.
@@ -2067,14 +2104,14 @@ Rules:
 
 ### 31.1 JSON serialization order
 
-For CLI output, JSON object keys MUST be emitted in schema order as documented in `schema/epub_content_extractor.v2.2.schema.json`.
+For CLI output, JSON object keys MUST be emitted in schema order as documented in `schema/epub_content_extractor.v3.0.schema.json`.
 
 Rules:
 
 - Consumers SHOULD compare parsed JSON semantically rather than relying on key order.
 - Array ordering remains semantically significant and MUST be deterministic.
 - `--pretty` and compact output MUST parse to identical objects.
-- Timestamp precision is seconds by default. Fractional seconds MUST NOT be emitted in v2.2 examples or contract fixtures unless the result schema is updated to require them.
+- Timestamp precision is seconds by default. Fractional seconds MUST NOT be emitted in v3.0 examples or contract fixtures unless the result schema is updated to require them.
 - `started_at` and `finished_at` MUST be UTC RFC-3339 strings ending with `Z`.
 
 ---
@@ -2180,14 +2217,13 @@ Rules:
 
 ## 34. Property-based testing, schema validation, and Coq specification
 
-Property-based tests are recommended for v2.2 quality assurance.
+Property-based tests are recommended for v3.0 quality assurance.
 
 Recommended properties:
 
 ```text
-chapter.text == join(chapter.paragraphs[].text, "
-
-")
+chapter.text is present and non-empty for every emitted chapter
+no chapters[].paragraphs field exists in production output
 section.text == join(section.paragraphs[].text, "
 
 ")
@@ -2200,13 +2236,13 @@ all TOC target_ids resolve or are omitted
 build_canonical_text is deterministic
 resolved inline footnote markers are removed
 unresolved inline footnote markers are preserved
-all emitted successful results validate against schema/epub_content_extractor.v2.2.schema.json
-all emitted failed results validate against schema/epub_content_extractor.v2.2.schema.json when a JSON result is emitted
-succeeded results contain at least one chapter/front_matter/back_matter item with non-empty text and at least one paragraph
+all emitted successful results validate against schema/epub_content_extractor.v3.0.schema.json
+all emitted failed results validate against schema/epub_content_extractor.v3.0.schema.json when a JSON result is emitted
+succeeded results contain at least one chapter with non-empty text or one front_matter/back_matter section with non-empty text and at least one paragraph
 succeeded results contain no diagnostics with severity == error
 debug is absent when extraction.config.include_debug == false
 every diagnostic code uses the severity defined in the diagnostic matrix
-all accepted configs validate against schema/epub_content_extractor_config.v2.2.schema.json
+all accepted configs validate against schema/epub_content_extractor_config.v3.0.schema.json
 invalid configs produce error.code == "invalid_config"
 invalid config result uses default extraction.config snapshot
 warning_count matches emitted warning diagnostics
@@ -2233,7 +2269,7 @@ Runtime validation policy:
 
 Contract tests MUST NOT commit generated binary EPUB or ZIP fixtures as source artifacts. Binary EPUB/ZIP inputs are generated at test runtime under the test temporary directory from deterministic committed fixture source specs.
 
-Required committed layout for each contract fixture:
+Required repository-root layout for each executable contract fixture:
 
 ```text
 tests/fixtures/epub_content_extractor/<category>/<fixture_id>/fixture.json
@@ -2241,11 +2277,15 @@ tests/fixtures/epub_content_extractor/<category>/<fixture_id>/config.json
 tests/fixtures/epub_content_extractor/<category>/<fixture_id>/expected.normalized.json
 ```
 
-`fixture.json` describes how to generate the runtime input file and SHOULD validate against:
+All golden manifest paths are repository-root-relative. The golden acceptance manifest MUST declare `path_base = "repo_root"`, and release validation MUST resolve paths against the explicit `--repo-root` argument rather than the process current working directory.
+
+`fixture.json` describes how to generate the runtime input file and MUST validate against:
 
 ```text
-schema/epub_content_extractor_fixture_manifest.v2.2.schema.json
+schema/epub_content_extractor_fixture_manifest.v3.0.schema.json
 ```
+
+`fixture.json.generator.source_spec` MUST be a machine-readable object, not a prose placeholder. It must include deterministic generation details such as format, ZIP entry order, ZIP timestamp, compression method, and exact source entries or inline object data.
 
 `expected.normalized.json` is compared after applying `normalize_result_for_snapshot()` from the testing guide. The normalizer may replace only:
 
@@ -2260,15 +2300,27 @@ Rules:
 - Golden outputs MUST validate directly against the official result schema after schema-preserving timestamp/duration normalization. The snapshot normalizer MUST use valid sentinel timestamps rather than non-schema placeholder strings.
 - CLI stderr snapshots are stable only for exit code, safe category, and absence of sensitive data; exact prose is not stable API.
 - There MUST be at least one fixture or documented coverage status for every fatal error code and every diagnostic code that production code may emit.
-- Diagnostic codes with `coverage_status = "reserved_not_emitted_by_default"` are schema-reserved in v2.2. Production code MUST NOT emit them unless the registry entry is changed to `integration_fixture`, `unit_fixture`, or `fault_injection` in a future contract version.
+- Diagnostic codes with `coverage_status = "reserved_not_emitted_by_default"` are schema-reserved in v3.0. Production code MUST NOT emit them unless the registry entry is changed to `integration_fixture`, `unit_fixture`, or `fault_injection` in a future contract version.
 - The diagnostic registry schema intentionally permits `coverage_status = "requires_contract_decision"` so draft registries can validate structurally.
 - Release-candidate registries MUST NOT contain `coverage_status = "requires_contract_decision"`. Release validation MUST run the additional semantic check that rejects this draft-only value in normative release registry files.
 - There MUST be explicit fixtures for wrong diagnostic severity rejection, no-readable-content success rejection, debug-when-disabled rejection, `$schema` input config acceptance, and unknown config field rejection.
 - There MUST be boundary fixtures for every inclusive limit at `actual == limit` and `actual == limit + 1` where practical.
 
+### 34.3 Release documentation validation command
+
+The repository MUST expose a release validation command:
+
+```bash
+python -m epub_content_extractor_contracts.validate_release_docs --repo-root .
+```
+
+The command MUST fail on schema/registry drift, unresolved `schema/` aliases, invalid or incomplete test coverage manifests, any P0 test with `blocking_status != "ready"`, fixture ID mismatch, missing golden paths, fixture manifests that are not executable source specs, successful goldens containing `chapters[].paragraphs`, invalid normalized timestamps, and canonical prose/source/config/golden disagreement for committed fixtures.
+
+When invoked with `--json`, the command MUST emit a machine-readable summary containing `status`, `error_count`, `warning_count`, and stable failed-check IDs.
+
 ### 34.2 Heuristic acceptance fixture matrix
 
-Chapter, section, TOC, and readable-content heuristics are implementation details, but fixture outcomes are normative for v2.2 release validation.
+Chapter, section, TOC, and readable-content heuristics are implementation details, but fixture outcomes are normative for v3.0 release validation.
 
 The fixture suite MUST include representative EPUBs for:
 
@@ -2293,7 +2345,7 @@ Coq specification may be used to define invariants and generate tests, but runti
 
 ```json
 {
-  "schema_version": "epub_content_extractor.v2.2",
+  "schema_version": "epub_content_extractor.v3.0",
   "status": "succeeded",
   "book": {
     "title": "A Doll's House",
@@ -2353,14 +2405,6 @@ Coq specification may be used to define invariants and generate tests, but runti
         "type": "act",
         "title": "ACT I",
         "text": "A room furnished comfortably and tastefully.\n\nNora: Hide the Christmas Tree carefully, Helen.",
-        "paragraphs": [
-          {
-            "text": "A room furnished comfortably and tastefully."
-          },
-          {
-            "text": "Nora: Hide the Christmas Tree carefully, Helen."
-          }
-        ],
         "footnotes": []
       }
     ],
@@ -2379,7 +2423,7 @@ Coq specification may be used to define invariants and generate tests, but runti
   },
   "diagnostics": [],
   "extraction": {
-    "extractor_version": "2.2.0",
+    "extractor_version": "3.0.0",
     "started_at": "2026-05-08T10:00:00Z",
     "finished_at": "2026-05-08T10:00:01Z",
     "duration_ms": 1000,
@@ -2406,7 +2450,7 @@ Coq specification may be used to define invariants and generate tests, but runti
       "chapter_count": 1,
       "front_matter_section_count": 1,
       "back_matter_section_count": 0,
-      "paragraph_count": 3,
+      "paragraph_count": 1,
       "footnote_count": 0,
       "total_text_chars": 108,
       "canonical_text_chars": 100,
@@ -2424,7 +2468,7 @@ Coq specification may be used to define invariants and generate tests, but runti
 
 ```json
 {
-  "schema_version": "epub_content_extractor.v2.2",
+  "schema_version": "epub_content_extractor.v3.0",
   "status": "failed",
   "error": {
     "code": "input_not_epub",
@@ -2433,7 +2477,7 @@ Coq specification may be used to define invariants and generate tests, but runti
   },
   "diagnostics": [],
   "extraction": {
-    "extractor_version": "2.2.0",
+    "extractor_version": "3.0.0",
     "started_at": "2026-05-08T10:00:00Z",
     "finished_at": "2026-05-08T10:00:00Z",
     "duration_ms": 12,
@@ -2508,13 +2552,13 @@ The following are non-breaking within the same schema version when fixture outpu
 - performance improvements;
 - internal refactoring.
 
-`output_json_too_large` is intentionally not added to v2.2 to avoid changing the error enum in-place. A future schema version SHOULD add it and map serialized-output-size overflow to that dedicated code instead of `internal_error`.
+`output_json_too_large` is intentionally not added to v3.0 to avoid changing the error enum in-place. A future schema version SHOULD add it and map serialized-output-size overflow to that dedicated code instead of `internal_error`.
 
 ---
 
 ## 38. Resolved decisions
 
-The following decisions are fixed in v2.2:
+The following decisions are fixed in v3.0:
 
 1. Output is a structured object, not plain text.
 2. The module is library + CLI only.
@@ -2525,7 +2569,7 @@ The following decisions are fixed in v2.2:
 7. Canonical downstream text is produced by `build_canonical_text(book, options)`.
 8. `chapter.text` does not include `chapter.title`.
 9. `section.text` does not include `section.title`.
-10. `chapter.text` is derived from `chapter.paragraphs[].text`.
+10. `chapter.text` is the authoritative public chapter body field; `chapters[].paragraphs` is not part of the production schema.
 11. `section.text` is derived from `section.paragraphs[].text`.
 12. Footnote text is not included in chapter/section text by default.
 13. Resolved inline footnote markers are removed.
@@ -2533,7 +2577,7 @@ The following decisions are fixed in v2.2:
 15. Front matter and back matter are preserved structurally.
 16. Copyright, ads, publisher notes, bibliography, and index are excluded from canonical text by default.
 17. Navigation boilerplate, page numbers, repeated headers/footers, and layout artifacts may be removed completely.
-18. `sentences[]` are not part of v2.2 output.
+18. `sentences[]` are not part of v3.0 output.
 19. `sentence_count` and `has_dialogue` are not part of the main schema.
 20. Chapters, sections, and footnotes have internal stable ids.
 21. Chapter type supports `chapter`, `part`, `act`, `scene`, `section`, and `unknown`.
@@ -2541,8 +2585,8 @@ The following decisions are fixed in v2.2:
 23. EPUB without readable content is a failed extraction.
 24. EPUB without metadata can still be a successful extraction.
 25. Scoring, source maps, raw blocks, and density clusters are debug-only implementation details.
-26. The official config schema is `schema/epub_content_extractor_config.v2.2.schema.json`.
-27. The official result schema is `schema/epub_content_extractor.v2.2.schema.json`.
+26. The official config schema is `schema/epub_content_extractor_config.v3.0.schema.json`.
+27. The official result schema is `schema/epub_content_extractor.v3.0.schema.json`.
 28. Invalid config in library mode returns `status = "failed"` with `error.code = "invalid_config"`.
 29. CLI usage errors exit `2` and emit only human-readable stderr, not JSON.
 30. CLI invalid config exits `4` and emits JSON failed result when the selected output channel is available.
@@ -2559,7 +2603,7 @@ The following decisions are fixed in v2.2:
 41. `extractor_version` must be SemVer-compatible without a leading `v`.
 42. Text character counts use Unicode code points, not bytes.
 43. `total_text_chars` includes preserved front matter, chapters, and back matter, but excludes footnotes.
-44. `paragraph_count` counts front matter, chapters, and back matter paragraphs.
+44. `paragraph_count` counts only emitted front matter and back matter `EpubParagraph` objects; chapter paragraph-like units are internal.
 45. `footnote_count` counts book-level, chapter-level, and section-level footnotes together.
 46. Nested TOC children are resolved independently of unresolved parents.
 47. Successful `book` arrays are always emitted as arrays; failed results omit `book` entirely.
@@ -2581,13 +2625,13 @@ The following decisions are fixed in v2.2:
 63. Successful local extraction emits lowercase hexadecimal `source_file.sha256`.
 64. CLI JSON object keys are emitted in schema order.
 65. Debug previews are optional; if emitted, deterministic redaction is mandatory.
-66. `recoverable` is always `false` for every v2.2 error code.
+66. `recoverable` is always `false` for every v3.0 error code.
 67. Parent directories for `--output PATH` must already exist.
 68. `--output -` means stdout.
-69. Production dependencies are fixed for v2.2 and absence of a dependency is an implementation/runtime defect.
+69. Production dependencies are fixed for v3.0 and absence of a dependency is an implementation/runtime defect.
 70. Input config may contain tooling-only `$schema`; `extraction.config` never contains `$schema`.
 71. Diagnostic severity is fixed per diagnostic code and enforced by schema plus contract tests.
-72. Successful results must contain at least one readable chapter/front/back matter content container with non-empty paragraph text.
+72. Successful results must contain at least one readable chapter with non-empty `chapter.text` or one front/back matter section with non-empty text and paragraph output.
 73. Archive safety checks run after ZIP open and before OPF/package discovery or parsing.
 74. Encrypted ZIP entries, symlink-like ZIP entries, malformed central directories, traversal paths, absolute paths, excessive entries, excessive uncompressed bytes, and excessive compression ratios are archive security violations.
 75. Compression ratio is enforced both per-entry and in aggregate using `uncompressed_size / max(compressed_size, 1)`.
@@ -2597,10 +2641,14 @@ The following decisions are fixed in v2.2:
 79. CLI `--output PATH` overwrites existing files atomically with same-directory temp file plus replace.
 80. Top-level `debug` is forbidden when `extraction.config.include_debug = false`.
 81. Config resource limits have hard schema maximums.
-82. v2.2 keeps output-size overflow mapped to `internal_error` as a compatibility compromise; a future schema should add `output_json_too_large`.
+82. v3.0 keeps output-size overflow mapped to `internal_error` as a compatibility compromise; a future schema should add `output_json_too_large`.
 83. Public `build_canonical_text()` options are partial boolean-only mappings; separator options are internal constants and rejected as public keys.
 84. Machine-readable diagnostic and error registries under `schema/` are normative for drift and coverage validation.
-85. Module-specific architecture and schemas override shared guidelines on conflicts.
+85. The `.epub` extension is advisory; content-based EPUB validation determines acceptance or failure.
+86. `schema/<file>` is a prose alias for `docs/architecture/schema/<file>` during release validation.
+87. `docs/testing/epub_content_extractor_test_coverage_manifest.v3.0.json` is the machine-readable TC-to-fixture/assertion coverage contract.
+88. Module-specific architecture and schemas override shared guidelines on conflicts.
+86. Removing `chapters[].paragraphs` is an intentional v3.0 breaking schema change; chapter body content is exposed through `chapter.text`.
 
 ---
 
@@ -2639,7 +2687,6 @@ EpubContentExtractionResult
       type
       title
       text
-      paragraphs[]
       footnotes[]
     back_matter[]
       id
@@ -2695,7 +2742,7 @@ EpubContentExtractionResult
 | Term | Definition |
 |---|---|
 | Readable content | Human-readable prose, dialogue, list text, dramatic directions, or semantically meaningful notes that remain after artifact removal and normalization. |
-| Content-bearing section | A front matter, chapter, back matter, or footnote container with at least one non-empty final paragraph or footnote text. |
+| Content-bearing section | A front matter, chapter, back matter, or footnote container with non-empty final text. Front/back matter sections expose paragraphs; chapters expose only `chapter.text` in production output. |
 | Valid and useful TOC | A table of contents whose entries can be ordered and mapped to reading-order content without dominating output with navigation noise. |
 | Strong heading | A heading element or heading-like block that is supported by TOC, spine boundary, dense prose context, or known literary structure pattern. |
 | High confidence | Deterministic evidence strong enough to change output shape without exposing uncertain assumptions. Numeric implementations use `confidence >= 0.85` unless a section specifies another threshold. |
@@ -2706,9 +2753,18 @@ EpubContentExtractionResult
 
 ---
 
-## 41. v2.2 change log from v2.1 review
+## 41. v3.0 change log from v2.2
 
-v2.2 integrates the review findings that were blockers or major ambiguity risks for production code generation:
+v3.0 is a breaking schema update focused on removing chapter-level paragraph arrays from production output while preserving section paragraph arrays for front/back matter:
+
+- Removed `chapters[].paragraphs` from `EpubChapter` and from the main result schema summary.
+- Made `chapter.text` the authoritative public chapter body field.
+- Updated readable-content invariants so chapters require non-empty `chapter.text`, while front/back matter sections still require non-empty `paragraphs[]` and `text`.
+- Updated canonical text builder rules to use `chapter.text` and `section.text` directly.
+- Updated `paragraph_count` semantics to count only emitted `EpubParagraph` objects in front/back matter sections.
+- Updated examples, property tests, and resolved decisions to reject `chapters[].paragraphs` in production output.
+
+The following v2.2 review findings remain incorporated in the v3.0 baseline:
 
 - Added mandatory normative result JSON Schema requirement.
 - Added global optional vs nullable JSON field policy.

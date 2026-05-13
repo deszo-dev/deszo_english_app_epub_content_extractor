@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.deszo.local/epub_content_extractor_error_registry.v2.2.schema.json",
+  "$id": "https://schemas.deszo.local/epub_content_extractor_error_registry.v3.0.schema.json",
   "title": "EpubContentExtractorErrorRegistry",
   "type": "object",
   "additionalProperties": false,
@@ -17,10 +17,10 @@
       "format": "uri"
     },
     "registry_version": {
-      "const": "epub_content_extractor_error_registry.v2.2"
+      "const": "epub_content_extractor_error_registry.v3.0"
     },
     "result_schema_version": {
-      "const": "epub_content_extractor.v2.2"
+      "const": "epub_content_extractor.v3.0"
     },
     "message_stability": {
       "const": "not_stable"
@@ -41,6 +41,7 @@
           "cli_exit_code",
           "cli_json_emission",
           "message_stability",
+          "coverage_status",
           "coverage_test_ids"
         ],
         "properties": {
@@ -79,7 +80,18 @@
               "type": "string",
               "minLength": 1
             },
-            "uniqueItems": true
+            "uniqueItems": true,
+            "minItems": 1
+          },
+          "coverage_status": {
+            "enum": [
+              "integration_fixture",
+              "unit_fixture",
+              "fault_injection",
+              "schema_only",
+              "reserved_not_emitted_by_default",
+              "requires_contract_decision"
+            ]
           }
         }
       }

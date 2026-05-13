@@ -1,7 +1,7 @@
 {
-  "$schema": "https://schemas.deszo.local/epub_content_extractor_diagnostic_registry.v2.2.schema.json",
-  "registry_version": "epub_content_extractor_diagnostic_registry.v2.2",
-  "result_schema_version": "epub_content_extractor.v2.2",
+  "$schema": "https://schemas.deszo.local/epub_content_extractor_diagnostic_registry.v3.0.schema.json",
+  "registry_version": "epub_content_extractor_diagnostic_registry.v3.0",
+  "result_schema_version": "epub_content_extractor.v3.0",
   "message_stability": "not_stable",
   "diagnostics": [
     {
@@ -125,7 +125,7 @@
     {
       "code": "chapter_title_uncertain",
       "severity": "warning",
-      "when_emitted": "Chapter title candidate is ambiguous and omitted (reserved in v2.2; production code must not emit by default).",
+      "when_emitted": "Chapter title candidate is ambiguous and omitted (reserved in v3.0; production code must not emit by default).",
       "affected_entity_policy": "internal chapter id only",
       "count_impact": "warning +1",
       "can_appear_in_success": true,
@@ -136,7 +136,7 @@
     {
       "code": "chapter_type_uncertain",
       "severity": "warning",
-      "when_emitted": "Chapter semantic type cannot be inferred (reserved in v2.2; production code must not emit by default).",
+      "when_emitted": "Chapter semantic type cannot be inferred (reserved in v3.0; production code must not emit by default).",
       "affected_entity_policy": "internal chapter id only",
       "count_impact": "warning +1",
       "can_appear_in_success": true,
@@ -407,7 +407,7 @@
     {
       "code": "text_block_too_large_dropped",
       "severity": "warning",
-      "when_emitted": "One block cannot be split safely and is dropped (reserved in v2.2; production code must not emit by default).",
+      "when_emitted": "One block cannot be split safely and is dropped (reserved in v3.0; production code must not emit by default).",
       "affected_entity_policy": "owner id only",
       "count_impact": "warning +1",
       "can_appear_in_success": true,

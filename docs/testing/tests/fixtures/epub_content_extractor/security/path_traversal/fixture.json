@@ -1,12 +1,38 @@
 {
-  "fixture_id": "F015_PATH_TRAVERSAL",
+  "fixture_id": "F013_PATH_TRAVERSAL",
   "kind": "invalid_zip",
   "purpose": "ZIP containing ../evil.txt must fail archive security before OPF discovery.",
   "generator": {
-    "tool": "contract_fixture_spec.v2.2",
-    "version_policy": "Generator MUST produce byte-stable ZIP entries with fixed ordering and timestamps.",
+    "tool": "contract_fixture_spec.v3.0",
+    "version_policy": "Generator MUST produce byte-stable files from listed source_spec fields with fixed ordering, timestamps, compression, and UTF-8 encoding where applicable.",
     "runtime_input": "input.epub",
-    "source_spec": "This fixture is a manually approved v2.2 contract baseline; generated binary inputs are not committed."
+    "source_spec": {
+      "format": "zip_entries",
+      "determinism": {
+        "zip_entry_order": "listed_order",
+        "zip_entry_timestamp": "2020-01-01T00:00:00Z",
+        "compression": "stored"
+      },
+      "zip_entries": [
+        {
+          "path": "../evil.txt",
+          "content_kind": "text",
+          "content": "This entry must trigger archive traversal validation before OPF parsing.\n",
+          "media_type": "text/plain"
+        },
+        {
+          "path": "README.txt",
+          "content_kind": "text",
+          "content": "The manifest is intentionally absent so archive security precedence is tested.\n",
+          "media_type": "text/plain"
+        }
+      ],
+      "expected_runtime_file": {
+        "sha256": "1c9498c3e2a7ce621c987c307789c69fb15357d8316cceae36e30ce19aad4c8b",
+        "size_bytes": 368,
+        "file_name": "input.epub"
+      }
+    }
   },
   "expected_artifacts": {
     "config": "config.json",
@@ -14,6 +40,7 @@
   },
   "notes": [
     "expected.normalized.json uses schema-preserving normalized timestamps.",
-    "Do not replace with implementation output unless the delta is reviewed as a contract change."
+    "Do not replace with implementation output unless the delta is reviewed as a contract change.",
+    "runtime input files are generated from this machine-readable source_spec; binary EPUB/ZIP files are never committed."
   ]
 }

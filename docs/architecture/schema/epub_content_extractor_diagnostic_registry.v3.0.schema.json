@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.deszo.local/epub_content_extractor_diagnostic_registry.v2.2.schema.json",
+  "$id": "https://schemas.deszo.local/epub_content_extractor_diagnostic_registry.v3.0.schema.json",
   "title": "EpubContentExtractorDiagnosticRegistry",
   "type": "object",
   "additionalProperties": false,
@@ -17,10 +17,10 @@
       "format": "uri"
     },
     "registry_version": {
-      "const": "epub_content_extractor_diagnostic_registry.v2.2"
+      "const": "epub_content_extractor_diagnostic_registry.v3.0"
     },
     "result_schema_version": {
-      "const": "epub_content_extractor.v2.2"
+      "const": "epub_content_extractor.v3.0"
     },
     "message_stability": {
       "const": "not_stable"
