@@ -1,6 +1,6 @@
 # EPUB Content Extractor
 
-`epub_content_extractor` extracts structured book content from local `.epub` files and returns a JSON-serializable result that follows the `epub_content_extractor.v2.2` contract.
+`epub_content_extractor` extracts structured book content from local `.epub` files and returns a JSON-serializable result that follows the `epub_content_extractor.v3.0` contract.
 
 The module is designed for downstream English-language NLP pipelines. It does not expose HTTP APIs, databases, queues, or storage integrations. The public surfaces are:
 
@@ -32,8 +32,8 @@ Failed results contain:
 
 The canonical schema lives in:
 
-- [docs/architecture/schema/epub_content_extractor.v2.2.schema.json](C:/my/2026/deszo_english_app/deszo_english_app_epub_content_extractor/docs/architecture/schema/epub_content_extractor.v2.2.schema.json)
-- [docs/architecture/schema/epub_content_extractor_config.v2.2.schema.json](C:/my/2026/deszo_english_app/deszo_english_app_epub_content_extractor/docs/architecture/schema/epub_content_extractor_config.v2.2.schema.json)
+- [docs/architecture/schema/epub_content_extractor.v3.0.schema.json](C:/my/2026/deszo_english_app/deszo_english_app_epub_content_extractor/docs/architecture/schema/epub_content_extractor.v3.0.schema.json)
+- [docs/architecture/schema/epub_content_extractor_config.v3.0.schema.json](C:/my/2026/deszo_english_app/deszo_english_app_epub_content_extractor/docs/architecture/schema/epub_content_extractor_config.v3.0.schema.json)
 
 The detailed contract and testing docs live in:
 
@@ -44,6 +44,7 @@ The detailed contract and testing docs live in:
 
 ```python
 from epub_content_extractor import (
+    EpubCanonicalTextBuildOptions,
     EpubContentExtractorConfig,
     build_canonical_text,
     extract_epub_content,
@@ -56,15 +57,21 @@ result = extract_epub_content(
 
 if result["status"] == "succeeded":
     book = result["book"]
-    text = build_canonical_text(book)
+    text = build_canonical_text(
+        book,
+        options=EpubCanonicalTextBuildOptions(include_front_matter=True),
+    )
 else:
     print(result["error"]["code"])
 ```
+
+In v3.0 chapters expose only `chapter.text` as their public body — there is no `chapters[].paragraphs` array. Public `EpubParagraph` objects live only inside front/back-matter sections.
 
 Public exports include:
 
 - `extract_epub_content(input_path, config=None) -> dict`;
 - `build_canonical_text(book, options=None) -> str`;
+- `EpubCanonicalTextBuildOptions(include_front_matter=False, include_back_matter=False, include_footnotes=False, include_chapter_titles=True, include_section_titles=False)`;
 - `EpubContentExtractorConfig`;
 - `EpubContentExtractorPipeline.runtime_metadata()`.
 
@@ -185,7 +192,7 @@ At the moment the suite passes with:
 
 ## Implementation Notes
 
-The current implementation already covers the main v2.2 contract, including:
+The current implementation already covers the main v3.0 contract, including:
 
 - structured success/failure results;
 - archive safety validation;

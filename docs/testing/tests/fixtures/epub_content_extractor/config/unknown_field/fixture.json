@@ -1,12 +1,23 @@
 {
-  "fixture_id": "F006_UNKNOWN_CONFIG_FIELD",
+  "fixture_id": "F016_UNKNOWN_CONFIG_FIELD",
   "kind": "config_only",
   "purpose": "Unknown config field must fail schema validation before input parsing.",
   "generator": {
-    "tool": "contract_fixture_spec.v2.2",
-    "version_policy": "Generator MUST produce byte-stable ZIP entries with fixed ordering and timestamps.",
-    "runtime_input": "input.epub",
-    "source_spec": "This fixture is a manually approved v2.2 contract baseline; generated binary inputs are not committed."
+    "tool": "contract_fixture_spec.v3.0",
+    "version_policy": "Generator MUST produce byte-stable files from listed source_spec fields with fixed ordering, timestamps, compression, and UTF-8 encoding where applicable.",
+    "runtime_input": "none",
+    "source_spec": {
+      "format": "config_only",
+      "determinism": {
+        "zip_entry_order": "listed_order",
+        "zip_entry_timestamp": "2020-01-01T00:00:00Z",
+        "compression": "stored"
+      },
+      "config_only": {
+        "config_file": "config.json",
+        "input_validation_must_not_start": true
+      }
+    }
   },
   "expected_artifacts": {
     "config": "config.json",
@@ -14,6 +25,7 @@
   },
   "notes": [
     "expected.normalized.json uses schema-preserving normalized timestamps.",
-    "Do not replace with implementation output unless the delta is reviewed as a contract change."
+    "Do not replace with implementation output unless the delta is reviewed as a contract change.",
+    "runtime input files are generated from this machine-readable source_spec; binary EPUB/ZIP files are never committed."
   ]
 }

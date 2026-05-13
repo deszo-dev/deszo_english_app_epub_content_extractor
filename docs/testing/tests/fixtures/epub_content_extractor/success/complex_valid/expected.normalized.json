@@ -1,5 +1,5 @@
 {
-  "schema_version": "epub_content_extractor.v2.2",
+  "schema_version": "epub_content_extractor.v3.0",
   "status": "succeeded",
   "book": {
     "title": "Complex Valid EPUB",
@@ -30,8 +30,8 @@
       ],
       "source_file": {
         "file_name": "complex_valid.epub",
-        "sha256": "b1d8a12d710847ace3571a6938f15b2ba840fa42f84729fd68a405d4a3cd82d6",
-        "size_bytes": 4096,
+        "sha256": "3642d20c01c7dbabeb15efde2c219a1cb525bbd813643a5d60eb85f639e13b3f",
+        "size_bytes": 4472,
         "epub_version": "3.0"
       }
     },
@@ -60,14 +60,6 @@
         "type": "chapter",
         "title": "Chapter 1",
         "text": "The first paragraph introduces the test book.\n\nThe second paragraph keeps stable ordering.",
-        "paragraphs": [
-          {
-            "text": "The first paragraph introduces the test book."
-          },
-          {
-            "text": "The second paragraph keeps stable ordering."
-          }
-        ],
         "footnotes": [
           {
             "id": "footnote_001",
@@ -83,11 +75,6 @@
         "type": "chapter",
         "title": "Chapter 2",
         "text": "A second chapter provides another body paragraph.",
-        "paragraphs": [
-          {
-            "text": "A second chapter provides another body paragraph."
-          }
-        ],
         "footnotes": []
       }
     ],
@@ -201,7 +188,7 @@
     }
   ],
   "extraction": {
-    "extractor_version": "2.2.0",
+    "extractor_version": "3.0.0",
     "started_at": "1970-01-01T00:00:00Z",
     "finished_at": "1970-01-01T00:00:00Z",
     "duration_ms": 0,
@@ -228,7 +215,7 @@
       "chapter_count": 2,
       "front_matter_section_count": 1,
       "back_matter_section_count": 1,
-      "paragraph_count": 5,
+      "paragraph_count": 3,
       "footnote_count": 1,
       "total_text_chars": 201,
       "canonical_text_chars": 164,

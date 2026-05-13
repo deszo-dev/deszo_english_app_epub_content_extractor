@@ -18,32 +18,39 @@ def schema_dir() -> Path:
     return project_root() / "docs" / "architecture" / "schema"
 
 
-@lru_cache(maxsize=4)
+@lru_cache(maxsize=8)
 def load_json_file(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
 @lru_cache(maxsize=1)
 def result_schema() -> dict[str, Any]:
-    return load_json_file(schema_dir() / "epub_content_extractor.v2.2.schema.json")
+    return load_json_file(schema_dir() / "epub_content_extractor.v3.0.schema.json")
 
 
 @lru_cache(maxsize=1)
 def config_schema() -> dict[str, Any]:
     return load_json_file(
-        schema_dir() / "epub_content_extractor_config.v2.2.schema.json"
+        schema_dir() / "epub_content_extractor_config.v3.0.schema.json"
     )
 
 
 @lru_cache(maxsize=1)
 def diagnostic_registry() -> dict[str, Any]:
     return load_json_file(
-        schema_dir() / "epub_content_extractor_diagnostic_registry.v2.2.json"
+        schema_dir() / "epub_content_extractor_diagnostic_registry.v3.0.json"
     )
 
 
 @lru_cache(maxsize=1)
 def error_registry() -> dict[str, Any]:
     return load_json_file(
-        schema_dir() / "epub_content_extractor_error_registry.v2.2.json"
+        schema_dir() / "epub_content_extractor_error_registry.v3.0.json"
+    )
+
+
+@lru_cache(maxsize=1)
+def canonical_text_build_options_schema() -> dict[str, Any]:
+    return load_json_file(
+        schema_dir() / "epub_canonical_text_build_options.v3.0.schema.json"
     )

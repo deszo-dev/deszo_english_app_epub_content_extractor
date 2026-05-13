@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.deszo.local/epub_content_extractor_config.v2.2.schema.json",
+  "$id": "https://schemas.deszo.local/epub_content_extractor_config.v3.0.schema.json",
   "title": "EpubContentExtractorConfig",
   "type": "object",
   "additionalProperties": false,

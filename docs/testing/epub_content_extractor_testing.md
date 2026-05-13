@@ -2,11 +2,11 @@
 
 ## 1. Scope
 
-This guide covers automated testing for `epub_content_extractor` contract version `v2.2`.
+This guide covers automated testing for `epub_content_extractor` contract version `v3.0`.
 
 The module under test converts local `.epub` files into a JSON-serializable structured result object with:
 
-* `schema_version = "epub_content_extractor.v2.2"`;
+* `schema_version = "epub_content_extractor.v3.0"`;
 * `status = "succeeded"` or `"failed"`;
 * structured `book` output on success;
 * structured `error` output on failure;
@@ -44,7 +44,7 @@ Tested behavior:
 * EPUB manifest/OPF handling;
 * language contract;
 * metadata normalization;
-* chapter/section/paragraph extraction invariants;
+* chapter body, section paragraph, and readable-content extraction invariants;
 * footnote extraction invariants;
 * TOC handling;
 * asset metadata handling;
@@ -73,14 +73,14 @@ Not tested as module-owned behavior:
 
 Important testing requirement:
 
-All EPUB inputs in automated tests must be generated dynamically inside the test temporary directory. Tests must not depend on committed binary EPUB fixtures. Valid EPUB files should be generated with a ready EPUB library, preferably Python `ebooklib`. Invalid/archive-security EPUBs should be generated with ZIP utilities such as Python `zipfile`, because EPUB libraries may sanitize unsafe paths and prevent malformed cases from being created.
+All EPUB inputs in automated tests must be generated dynamically inside the test temporary directory. Tests must not depend on committed binary EPUB fixtures. Fixture inputs should be generated from the committed `fixture.json.generator.source_spec` through the deterministic contract fixture generator. Valid EPUB baselines MAY use ZIP-level source specs instead of `ebooklib` when exact byte stability is required. Invalid/archive-security EPUBs should be generated with ZIP utilities such as Python `zipfile`, because EPUB libraries may sanitize unsafe paths and prevent malformed cases from being created.
 
 Canonical fixture policy:
 
 - Contract tests MUST NOT commit generated binary EPUB files as source fixtures.
 - Each contract fixture MUST be represented by committed deterministic fixture source artifacts.
 - The test helper generates `input.epub` or an invalid ZIP/EPUB-like file under the test temporary directory at runtime.
-- Valid EPUB files SHOULD be generated with `ebooklib` or an equivalent pinned helper.
+- Valid EPUB files SHOULD be generated from executable `fixture.json` source specs through a pinned deterministic helper. `ebooklib` may be used only when the resulting bytes and golden hashes are stable under the dependency lockfile.
 - Invalid/archive-security inputs SHOULD be generated with Python `zipfile` or an external fixture tool when `zipfile` cannot create the required invalid condition.
 - Key contract fixtures SHOULD include normalized golden outputs once implementation behavior is accepted.
 
@@ -100,17 +100,17 @@ tests/fixtures/epub_content_extractor/<category>/<fixture_id>/expected.normalize
 
 | Area                                  | Issue                                                                                                                             | Risk                                                                                               | Required clarification                                                                                                                                          |
 | ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| EPUB fixture generation               | Documentation requires EPUB inputs but does not prescribe a canonical test-generation library.                                    | Different generators may produce slightly different OPF/NCX/NAV files, causing brittle assertions. | Standardize on `ebooklib` for valid EPUBs and `zipfile` for intentionally invalid/security EPUBs.                                                               |
+| EPUB fixture generation               | Documentation requires EPUB inputs and exact source-file SHA/size snapshots.                                    | Different generators may produce slightly different OPF/NCX/NAV files, causing brittle assertions. | Standardize on executable `fixture.json` source specs and a pinned deterministic contract fixture generator; allow `zipfile` for byte-stable valid and invalid fixtures.                                                               |
 | Exact chapter detection heuristics    | Chapter detection may use TOC, spine order, headings, or internal scoring.                                                        | Exact chapter boundaries may vary while still satisfying contract.                                 | Tests should assert stable contract invariants, not internal scoring decisions, unless fixture is intentionally simple.                                         |
 | Front/back matter classification      | Section detection is heuristic.                                                                                                   | Tests may become brittle if exact classification changes while output remains contract-valid.      | Use strong explicit titles such as `Copyright`, `Preface`, `Appendix`, `Advertisement` and assert type only when docs define expected behavior strongly enough. |
-| `chapter_title_uncertain`             | The code exists in the v2.2 schema but is `reserved_not_emitted_by_default` in the diagnostic registry.                            | Production tests must not require a triggering EPUB in v2.2.                                       | Assert that default production fixtures do not emit this code; add a deterministic trigger only in a future version if the registry status changes.              |
-| `chapter_type_uncertain`              | The code exists in the v2.2 schema but is `reserved_not_emitted_by_default` in the diagnostic registry.                            | Production tests must not require a triggering EPUB in v2.2.                                       | Assert that default production fixtures do not emit this code; add a deterministic trigger only in a future version if the registry status changes.              |
+| `chapter_title_uncertain`             | The code exists in the v3.0 schema but is `reserved_not_emitted_by_default` in the diagnostic registry.                            | Production tests must not require a triggering EPUB in v3.0.                                       | Assert that default production fixtures do not emit this code; add a deterministic trigger only in a future version if the registry status changes.              |
+| `chapter_type_uncertain`              | The code exists in the v3.0 schema but is `reserved_not_emitted_by_default` in the diagnostic registry.                            | Production tests must not require a triggering EPUB in v3.0.                                       | Assert that default production fixtures do not emit this code; add a deterministic trigger only in a future version if the registry status changes.              |
 | `toc_target_unresolved`               | Contract says unresolved TOC target should emit diagnostic, but exact unresolved-target detection depends on TOC parser behavior. | Different libraries may normalize/remove broken TOC items before extractor sees them.              | Use a hand-crafted EPUB ZIP with explicit NCX/NAV broken target if strict coverage is required.                                                                 |
 | `html_document_parse_timeout_skipped` | Timeout is timing-dependent.                                                                                                      | Flaky tests if relying on real wall-clock parser timeout.                                          | Implement as integration/fault-injection test using parser fake/hook, or mark as non-deterministic without test seam.                                           |
 | `pipeline_timeout`                    | Whole-pipeline timeout is timing-dependent.                                                                                       | Flaky test if based on slow machine behavior.                                                      | Needs deterministic clock/timer injection or a test-only timeout hook.                                                                                          |
 | `unicode_normalization_failed`        | Documentation does not define deterministic invalid Unicode input that must partially fail.                                       | Hard to trigger reliably with Python strings and EPUB XML.                                         | Cover schema/severity mapping; add deterministic fixture only after implementation exposes known failure condition.                                             |
 | `text_block_too_large_dropped`        | Docs define split-or-drop policy but not exact condition where splitting is unsafe.                                               | Test may expect drop while implementation safely splits.                                           | Use invariant-based split test; require clarification for forced drop fixture.                                                                                  |
-| `output_json_too_large`               | Docs say exceeding `max_output_json_bytes` maps to `internal_error` in v2.2 because no dedicated code exists.                     | Semantically odd regression target.                                                                | Test only CLI/library behavior documented for v2.2; recommend future dedicated error code.                                                                      |
+| `output_json_too_large`               | Docs say exceeding `max_output_json_bytes` maps to `internal_error` in v3.0 because no dedicated code exists.                     | Semantically odd regression target.                                                                | Test only CLI/library behavior documented for v3.0; recommend future dedicated error code.                                                                      |
 | Manifest generation                   | The module parses EPUB package/OPF manifest but does not define a separate output manifest artifact.                              | Generic tests for “manifest generation” would be invalid.                                          | Do not test external manifest files; test `book.assets`, TOC, source metadata, and schema-valid output instead.                                                 |
 | Logs                                  | Documentation gives privacy rules for logs but no stable logging API.                                                             | Direct log assertions may be brittle.                                                              | Treat as optional observability tests unless implementation exposes logger contract.                                                                            |
 | Permission errors                     | File permission behavior is OS-dependent, especially on Windows.                                                                  | Cross-platform test instability.                                                                   | Run permission test only on POSIX-capable CI or use monkeypatch/fake filesystem.                                                                                |
@@ -160,7 +160,7 @@ They should verify:
 
 Required fixtures:
 
-* dynamically generated valid EPUBs via `ebooklib`;
+* dynamically generated valid EPUBs from executable `fixture.json` source specs;
 * hand-crafted invalid ZIP/EPUB files via `zipfile`;
 * temp directories for input/output isolation.
 
@@ -179,7 +179,7 @@ Contract tests should enforce stable public behavior:
 
 Pass condition:
 
-* every production result validates against `schema/epub_content_extractor.v2.2.schema.json`;
+* every production result validates against `schema/epub_content_extractor.v3.0.schema.json`;
 * every emitted diagnostic code is documented;
 * every emitted diagnostic severity matches the matrix;
 * every failure has exactly one top-level `error`.
@@ -216,7 +216,7 @@ The helper may replace only these fields:
 * `extraction.finished_at` with `"1970-01-01T00:00:00Z"`;
 * `extraction.duration_ms` with `0`.
 
-The helper MUST be schema-preserving: the normalized result and each committed `expected.normalized.json` MUST still validate against `schema/epub_content_extractor.v2.2.schema.json`.
+The helper MUST be schema-preserving: the normalized result and each committed `expected.normalized.json` MUST still validate against `schema/epub_content_extractor.v3.0.schema.json`.
 
 The helper MUST NOT sort arrays, rewrite IDs, normalize diagnostics order, normalize file hashes, normalize file sizes, or hide dependency/version differences. A test MUST fail if an unknown volatile field appears.
 
@@ -261,7 +261,7 @@ Property-style tests should cover:
 * no emitted diagnostic uses undocumented code;
 * warning/error summary counts match diagnostics;
 * no absolute local paths appear in production output;
-* `chapter.text` equals paragraph texts joined with `"\n\n"`;
+* `chapter.text` is present, non-empty, excludes `chapter.title`, and no production `chapters[].paragraphs` field exists;
 * repeated runs produce semantically equal output after volatile fields are normalized.
 
 
@@ -294,20 +294,115 @@ config.json
 expected.normalized.json
 ```
 
-`fixture.json` describes how to generate the EPUB or ZIP input and SHOULD validate against `schema/epub_content_extractor_fixture_manifest.v2.2.schema.json`. The test helper generates `input.epub` under the test temporary directory at runtime.
+`fixture.json` describes how to generate the EPUB or ZIP input and MUST validate against `schema/epub_content_extractor_fixture_manifest.v3.0.schema.json` for every committed fixture. The test helper generates `input.epub` under the test temporary directory at runtime.
 
 `expected.normalized.json` is compared after applying `normalize_result_for_snapshot()`. The normalizer may replace only `extraction.started_at`, `extraction.finished_at`, and `extraction.duration_ms`.
 
 A test MUST fail if output contains an additional volatile field that is not listed above.
 
 
+### Canonical fixture ID policy
+
+The numeric fixture ID declared by a `### Fixture FNNN` heading is the canonical fixture identity. A committed `fixture.json` MAY append a descriptive suffix only in the form `FNNN_UPPER_SNAKE_SLUG`, but the `FNNN` prefix MUST match the fixture heading and every test-case reference.
+
+Valid examples:
+
+- `F001`
+- `F001_MINIMAL_VALID`
+- `F016_UNKNOWN_CONFIG_FIELD`
+
+Invalid examples:
+
+- `F006_UNKNOWN_CONFIG_FIELD`, because F006 is reserved for duplicate metadata and unknown config is F016.
+- `F024_COMPLEX_VALID`, unless Fixture F024 is added to this guide.
+
+Release validation MUST fail if:
+
+1. a committed `fixture.json.fixture_id` has no matching fixture heading;
+2. a test case references a fixture ID that has no committed manifest or documented non-golden rationale;
+3. two committed manifests use the same numeric fixture prefix for different fixture meanings;
+4. a committed fixture path/slug contradicts the fixture heading purpose.
+
+### Golden/source/prose consistency rule
+
+For every committed golden fixture, these three artifacts form one indivisible contract:
+
+1. `fixture.json` machine-readable source spec;
+2. `config.json`;
+3. `expected.normalized.json`.
+
+The prose fixture description in this guide MUST match that tuple for all externally visible values: metadata, content text, file names, diagnostics, summary counts, config values, expected error code, and expected status.
+
+A release is invalid if the prose fixture description, committed config, or committed golden output disagree. For v3.0, the committed golden tuple is canonical until intentionally changed by review.
+
+### Fixture path resolution
+
+All fixture paths in golden manifests are repository-root-relative. The v3.0 golden manifest declares `path_base = "repo_root"`, and release validation MUST resolve every `minimum_required_goldens[]` path against the explicit `--repo-root` argument rather than the current working directory.
+
+Canonical repository layout:
+
+```text
+tests/fixtures/epub_content_extractor/<category>/<fixture_id>/fixture.json
+tests/fixtures/epub_content_extractor/<category>/<fixture_id>/config.json
+tests/fixtures/epub_content_extractor/<category>/<fixture_id>/expected.normalized.json
+```
+
+A documentation-only archive MAY contain additional explanatory files under `docs/`, but executable fixture artifacts for release validation belong under repo-root `tests/fixtures/...`.
+
+### Executable fixture manifest rule
+
+`fixture.json` MUST be an executable source spec, not a prose placeholder. The field `generator.source_spec` is a structured object that declares the runtime input format, deterministic ZIP/file construction policy, and the exact source entries or inline object needed by the test helper.
+
+A fixture manifest with only a string such as `"manually approved baseline"` as `source_spec` is invalid in v3.0. The fixture manifest schema intentionally rejects that shape.
+
+
+### Artifact path aliases
+
+All release-validation paths are resolved from the explicit repository root passed as `--repo-root`.
+
+Normative schema and registry artifacts are physically located at:
+
+```text
+docs/architecture/schema/
+```
+
+The shorthand `schema/<file>` used in prose means `docs/architecture/schema/<file>` relative to repository root. Release validators MUST resolve this alias explicitly and MUST NOT depend on the process current working directory.
+
+Executable test fixture paths under `tests/fixtures/...` are already repository-root-relative and MUST NOT be resolved through the `schema/` alias.
+
+### Test coverage manifest policy
+
+The testing package MUST include:
+
+```text
+docs/testing/epub_content_extractor_test_coverage_manifest.v3.0.json
+```
+
+It MUST validate against:
+
+```text
+schema/epub_content_extractor_test_coverage_manifest.v3.0.schema.json
+```
+
+Each `TC-001` through `TC-040` entry MUST appear exactly once in the manifest with its priority, fixture identity, fixture source, assertion mode, and blocking status.
+
+Allowed `fixture_source` values are:
+
+```text
+committed_golden
+committed_invariant
+inline_fixture
+schema_only
+fault_injection
+no_fixture_required
+```
+
+Release validation MUST fail if any P0 test has `blocking_status != "ready"`, if any committed fixture path is missing from repo root, or if a test case appears in the Markdown matrix but not in the coverage manifest.
+
 
 ### 4.1 Golden-output acceptance artifacts
 
-The documentation package defines the required locations and comparison rules for golden outputs, but generated `expected.normalized.json` files MUST be populated from either:
-
-1. manually approved contract examples, or
-2. a run of the accepted implementation followed by contract review.
+The documentation package defines the required locations and comparison rules for golden outputs. For v3.0 the seven committed `expected.normalized.json` files listed below are manually approved contract examples and are not placeholders.
 
 Do not commit placeholder JSON under the name `expected.normalized.json`. A file with that name is normative and MUST be valid against the result schema after the documented normalization policy is applied.
 
@@ -323,21 +418,21 @@ tests/fixtures/epub_content_extractor/config/unknown_field/expected.normalized.j
 tests/fixtures/epub_content_extractor/limits/no_readable_content/expected.normalized.json
 ```
 
-Until those files exist, fixture tests MUST be treated as acceptance TODOs rather than completed golden-snapshot tests.
+These files MUST exist under repo-root `tests/fixtures/...` before the package can claim release-ready golden coverage.
 
 The minimum golden-output acceptance manifest is stored at:
 
 ```text
-docs/testing/epub_content_extractor_golden_acceptance_manifest.v2.2.json
+docs/testing/epub_content_extractor_golden_acceptance_manifest.v3.0.json
 ```
 
 It MUST validate against:
 
 ```text
-schema/epub_content_extractor_golden_acceptance_manifest.v2.2.schema.json
+schema/epub_content_extractor_golden_acceptance_manifest.v3.0.schema.json
 ```
 
-Release validation MUST fail when the manifest status is `pending_until_real_goldens_committed`. Release validation may pass only when `status = "complete"` and every listed `expected.normalized.json` path exists, is non-placeholder JSON, and validates against the result schema after the documented schema-preserving snapshot-normalization policy.
+Release validation MUST fail when the manifest status is `pending_until_real_goldens_committed`. Release validation may pass only when `status = "complete"`, `path_base = "repo_root"`, and every listed `expected.normalized.json` path exists under the explicit repository root, is non-placeholder JSON, and validates against the result schema after the documented schema-preserving snapshot-normalization policy.
 
 
 ### Fixture F000: Default effective config
@@ -378,78 +473,58 @@ Reusable default config snapshot expected after missing config or `{}` input.
 
 ---
 
-### Fixture F001: Minimal valid EPUB generated with `ebooklib`
+### Fixture F001: Minimal valid EPUB
 
 **Purpose:**
-Smallest stable happy-path EPUB with one readable chapter, metadata, language, author, and TOC.
+Smallest committed happy-path EPUB. This fixture is the canonical v3.0 minimal golden baseline.
+
+**Committed fixture tuple:**
+
+```text
+tests/fixtures/epub_content_extractor/success/minimal_valid/fixture.json
+tests/fixtures/epub_content_extractor/success/minimal_valid/config.json
+tests/fixtures/epub_content_extractor/success/minimal_valid/expected.normalized.json
+```
 
 **Generation rule:**
-Generate dynamically in a test temp directory using `ebooklib`. Do not store binary EPUB in repository.
+Generate `minimal_valid.epub` from `fixture.json.generator.source_spec`. The source spec uses deterministic `zip_entries` with listed-order entries, fixed ZIP timestamps, stored compression, and UTF-8 text entries. Do not store the generated binary EPUB in the repository.
 
-**Output file:**
-
-`tmp/epubs/minimal_valid.epub`
-
-**Encoding:**
-UTF-8 for all XHTML/metadata strings.
-
-**EPUB metadata:**
+**Expected externally visible metadata:**
 
 ```json
 {
-  "identifier": {
-    "scheme": "Project Gutenberg",
-    "value": "TEST-001"
-  },
-  "title": "Minimal Test Book",
+  "title": "Minimal Valid EPUB",
+  "subtitle": null,
   "language": "en",
   "authors": [
-    "Jane Example"
+    { "name": "Jane Example", "role": "author" }
   ],
-  "publisher": "Test Publisher",
-  "rights": "Public domain",
-  "subjects": [
-    "Testing"
+  "identifiers": [
+    {
+      "scheme": "uuid",
+      "value": "urn:uuid:00000000-0000-4000-8000-000000000001"
+    }
   ],
-  "published_at": "2026-05-08"
+  "publisher": null,
+  "published_at": null,
+  "modified_at": null,
+  "description": null,
+  "rights": null,
+  "subjects": []
 }
 ```
 
-**Spine / reading order:**
+**Expected chapter model:**
 
 ```json
-[
-  "nav",
-  "chapter_1.xhtml"
-]
-```
-
-**TOC:**
-
-```json
-[
-  {
-    "title": "Chapter One",
-    "href": "chapter_1.xhtml"
-  }
-]
-```
-
-**File / content object:**
-
-`OEBPS/chapter_1.xhtml`
-
-```html
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <title>Chapter One</title>
-  </head>
-  <body>
-    <h1>Chapter One</h1>
-    <p>First paragraph of the minimal generated EPUB.</p>
-    <p>Second paragraph with clean English text.</p>
-  </body>
-</html>
+{
+  "id": "chapter_001",
+  "chapter_number": 1,
+  "type": "chapter",
+  "title": "Chapter 1",
+  "text": "Hello world.",
+  "footnotes": []
+}
 ```
 
 **Config:**
@@ -458,207 +533,83 @@ Use missing config or `{}`.
 **Expected reusable assertions:**
 
 * library result has `status = "succeeded"`;
-* result validates against `schema/epub_content_extractor.v2.2.schema.json`;
-* `schema_version = "epub_content_extractor.v2.2"`;
+* normalized output equals the committed `expected.normalized.json`;
+* result validates against `schema/epub_content_extractor.v3.0.schema.json`;
+* `schema_version = "epub_content_extractor.v3.0"`;
 * `book.language = "en"`;
-* `book.title = "Minimal Test Book"`;
-* `book.authors` contains exactly one author named `"Jane Example"` with role `"author"`;
-* `book.chapters.length >= 1`;
-* first chapter has non-empty `text`;
-* first chapter has at least two paragraphs;
-* `chapter.text` does not include `"Chapter One"` if `chapter.title = "Chapter One"`;
-* `chapter.text` equals `paragraphs[].text` joined with `"\n\n"`;
-* `book.error` is absent;
-* no diagnostic has `severity = "error"`;
-* `metadata.source_file.sha256` matches lowercase 64-char hex pattern;
-* `metadata.source_file.size_bytes` equals actual EPUB file size;
-* `metadata.source_file.file_name`, if emitted, is basename only and contains no slash or backslash.
+* first chapter does not expose a `paragraphs` field in production output;
+* `chapter.text` does not include `"Chapter 1"`;
+* `diagnostics` contains `chapter_title_detected` for `chapter_001`;
+* `metadata.source_file.sha256` and `metadata.source_file.size_bytes` match the bytes generated from `fixture.json`;
+* `metadata.source_file.file_name = "minimal_valid.epub"` and contains no slash or backslash.
 
 ---
 
-### Fixture F002: Complex EPUB with front matter, chapters, back matter, footnote, TOC, and image asset
+### Fixture F002: Complex valid EPUB
 
 **Purpose:**
-Valid richer EPUB for integration coverage.
+Committed richer EPUB baseline covering front matter, two chapters, back matter, a resolved footnote, TOC entries, and cover image metadata.
 
-**Generation rule:**
-Generate dynamically with `ebooklib`.
-
-**Output file:**
-
-`tmp/epubs/complex_valid.epub`
-
-**EPUB metadata:**
-
-```json
-{
-  "identifier": {
-    "scheme": "Project Gutenberg",
-    "value": "TEST-002"
-  },
-  "title": "Complex Test Book",
-  "subtitle": "Fixture Edition",
-  "language": "en-US",
-  "authors": [
-    "Alice Writer",
-    "Bob Writer"
-  ],
-  "contributors": [
-    {
-      "name": "Clara Translator",
-      "role": "translator"
-    }
-  ],
-  "publisher": "Test Publisher",
-  "rights": "Public domain",
-  "subjects": [
-    "Testing",
-    "Drama"
-  ],
-  "published_at": "2026-05-08",
-  "modified_at": "2026-05-08T10:00:00Z"
-}
-```
-
-**Spine / reading order:**
-
-```json
-[
-  "nav",
-  "front_preface.xhtml",
-  "chapter_1.xhtml",
-  "chapter_2.xhtml",
-  "back_appendix.xhtml"
-]
-```
-
-**TOC:**
-
-```json
-[
-  {
-    "title": "Preface",
-    "href": "front_preface.xhtml"
-  },
-  {
-    "title": "Chapter One",
-    "href": "chapter_1.xhtml"
-  },
-  {
-    "title": "Chapter Two",
-    "href": "chapter_2.xhtml"
-  },
-  {
-    "title": "Appendix",
-    "href": "back_appendix.xhtml"
-  }
-]
-```
-
-**Files / content objects:**
-
-`OEBPS/front_preface.xhtml`
-
-```html
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <title>Preface</title>
-  </head>
-  <body>
-    <h1>Preface</h1>
-    <p>This preface explains why the generated book exists.</p>
-  </body>
-</html>
-```
-
-`OEBPS/chapter_1.xhtml`
-
-```html
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <title>Chapter One</title>
-  </head>
-  <body>
-    <h1>Chapter One</h1>
-    <p>The first chapter has a linked note<a href="notes.xhtml#fn1"><sup>1</sup></a>.</p>
-    <p>The second paragraph remains ordinary text.</p>
-    <aside id="fn1">
-      <p><sup>1</sup> This is the generated footnote text.</p>
-    </aside>
-    <img src="images/cover.png" alt="Generated cover image" />
-  </body>
-</html>
-```
-
-`OEBPS/chapter_2.xhtml`
-
-```html
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <title>Chapter Two</title>
-  </head>
-  <body>
-    <h1>Chapter Two</h1>
-    <p>The second chapter confirms reading order.</p>
-  </body>
-</html>
-```
-
-`OEBPS/back_appendix.xhtml`
-
-```html
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <title>Appendix</title>
-  </head>
-  <body>
-    <h1>Appendix</h1>
-    <p>This appendix is generated back matter.</p>
-  </body>
-</html>
-```
-
-`OEBPS/images/cover.png`
+**Committed fixture tuple:**
 
 ```text
-Use a valid 1x1 PNG binary generated dynamically by the test helper. The binary must not be asserted in output; only metadata may be asserted.
+tests/fixtures/epub_content_extractor/success/complex_valid/fixture.json
+tests/fixtures/epub_content_extractor/success/complex_valid/config.json
+tests/fixtures/epub_content_extractor/success/complex_valid/expected.normalized.json
 ```
 
-**Config:**
+**Generation rule:**
+Generate `complex_valid.epub` from `fixture.json.generator.source_spec`. The source spec uses deterministic `zip_entries` with listed-order entries, fixed ZIP timestamps, stored compression, UTF-8 XHTML/OPF entries, and a small base64-encoded PNG cover entry. Do not store the generated binary EPUB in the repository.
+
+**Expected externally visible metadata:**
 
 ```json
 {
-  "include_front_matter_in_canonical_text": true,
-  "include_back_matter_in_canonical_text": true,
-  "include_footnotes_in_canonical_text": false,
-  "include_chapter_titles_in_canonical_text": true,
-  "include_section_titles_in_canonical_text": true,
-  "max_epub_size_bytes": 104857600,
-  "max_html_document_size_bytes": 10485760,
-  "max_text_block_chars": 100000,
-  "pipeline_timeout_seconds": 120,
-  "html_parse_timeout_seconds": 20,
-  "max_archive_uncompressed_bytes": 524288000,
-  "max_archive_entry_count": 10000,
-  "max_archive_compression_ratio": 100,
-  "max_toc_depth": 8,
-  "max_diagnostic_count": 1000,
-  "max_output_json_bytes": 524288000,
-  "include_debug": false
+  "title": "Complex Valid EPUB",
+  "subtitle": "A Contract Fixture",
+  "language": "en",
+  "authors": [
+    { "name": "Jane Example", "role": "author" }
+  ],
+  "contributors": [],
+  "identifiers": [
+    { "scheme": "isbn", "value": "9780000000002" }
+  ],
+  "publisher": "Deszo Test Press",
+  "published_at": "2020-01-02",
+  "modified_at": "2020-01-03T00:00:00Z",
+  "description": "A deterministic EPUB fixture for contract testing.",
+  "rights": "Public domain test fixture.",
+  "subjects": ["Testing", "Fiction"]
 }
 ```
+
+**Expected structural highlights:**
+
+* `front_matter[0]` is `front_001`, type `title_page`, title `Title Page`, text `Complex Valid EPUB
+Jane Example`;
+* `chapters[0]` is `chapter_001`, title `Chapter 1`, text `The first paragraph introduces the test book.
+
+The second paragraph keeps stable ordering.`;
+* `chapters[1]` is `chapter_002`, title `Chapter 2`, text `A second chapter provides another body paragraph.`;
+* `back_matter[0]` is `back_001`, type `notes`, title `Notes`, text `End notes for the test edition.`;
+* resolved footnote `footnote_001` has marker `1`, text `A short explanatory note.`, and paragraph number `1`;
+* `assets[0]` is cover metadata with media type `image/png`, file name `images/cover.png`, and alt text `Plain test cover`.
+
+**Config:**
+Use missing config or `{}`. The committed `config.json` for this fixture is `{}` and the effective config in the golden output is the F000 default snapshot.
 
 **Expected reusable assertions:**
 
-* result succeeds and validates against schema;
+* normalized output equals the committed `expected.normalized.json`;
 * output contains no binary image data or base64 image content;
-* `book.assets` may contain image metadata with `media_type` and optional basename file name;
 * `book.table_of_contents[].children` is always an array;
 * chapter numbers are 1-based and in reading order;
-* `summary.chapter_count` equals `book.chapters.length`;
-* `summary.paragraph_count` equals total paragraphs in front matter, chapters, and back matter;
-* `summary.warning_count` equals diagnostics with `severity = "warning"`;
-* `summary.error_count = 0`.
+* no chapter exposes a public `paragraphs` field;
+* `summary.chapter_count = 2`;
+* `summary.paragraph_count = 3`, counting only emitted public `EpubParagraph` objects in front/back matter;
+* `summary.warning_count = 0` and `summary.error_count = 0`;
+* `metadata.source_file.sha256` and `metadata.source_file.size_bytes` match the bytes generated from `fixture.json`.
 
 ---
 
@@ -1396,55 +1347,38 @@ Generate dynamically with `zipfile`.
 
 ---
 
-### Fixture F015: ZIP with excessive compression ratio
+### Fixture F015: Deterministic archive compression-ratio guard
 
 **Purpose:**
-Verify ZIP bomb guard.
+Verify ZIP bomb ratio behavior without relying on environment-specific ZIP compressor output.
 
-**Generation rule:**
-Generate dynamically with `zipfile` using compression enabled.
+**Fixture kind:**
+Fault-injection / unit-level archive-safety calculator input.
 
-**File:**
-
-`tmp/epubs/high_compression_ratio.epub`
-
-**ZIP entries:**
-
-`repeated.txt`
-
-```text
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-```
-
-**Config:**
+**Deterministic inputs:**
 
 ```json
 {
-  "include_front_matter_in_canonical_text": false,
-  "include_back_matter_in_canonical_text": false,
-  "include_footnotes_in_canonical_text": false,
-  "include_chapter_titles_in_canonical_text": true,
-  "include_section_titles_in_canonical_text": false,
-  "max_epub_size_bytes": 104857600,
-  "max_html_document_size_bytes": 10485760,
-  "max_text_block_chars": 100000,
-  "pipeline_timeout_seconds": 120,
-  "html_parse_timeout_seconds": 20,
-  "max_archive_uncompressed_bytes": 524288000,
-  "max_archive_entry_count": 10000,
-  "max_archive_compression_ratio": 1,
-  "max_toc_depth": 8,
-  "max_diagnostic_count": 1000,
-  "max_output_json_bytes": 524288000,
-  "include_debug": false
+  "entry_compressed_size": 10,
+  "entry_uncompressed_size": 20,
+  "aggregate_compressed_size": 10,
+  "aggregate_uncompressed_size": 20,
+  "max_archive_compression_ratio": 1
 }
+```
+
+**Expected computed values:**
+
+```text
+entry_compression_ratio = 20 / max(10, 1) = 2.0
+aggregate_compression_ratio = 20 / max(10, 1) = 2.0
 ```
 
 **Expected reusable assertions:**
 
-* if the compressed entry ratio is greater than `1`, extraction fails with `epub_archive_security_violation`;
-* if the test environment ZIP compressor does not produce ratio greater than `1`, the generated fixture is invalid and must be enlarged until ratio exceeds configured limit;
-* result validates against schema.
+* ratio exceeds the configured limit because `2.0 > 1`;
+* the archive safety check maps the violation to `epub_archive_security_violation`;
+* the test MUST NOT depend on zlib compression output, payload enlargement, or host-specific ZIP behavior.
 
 ---
 
@@ -1517,7 +1451,7 @@ Use fixture F001.
 
 ```json
 {
-  "$schema": "https://schemas.deszo.local/schema/epub_content_extractor_config.v2.2.schema.json",
+  "$schema": "https://schemas.deszo.local/epub_content_extractor_config.v3.0.schema.json",
   "include_chapter_titles_in_canonical_text": false
 }
 ```
@@ -1693,14 +1627,6 @@ Pure fixture for `build_canonical_text`.
       "type": "chapter",
       "title": "Chapter One",
       "text": "First chapter paragraph.\n\nSecond chapter paragraph.",
-      "paragraphs": [
-        {
-          "text": "First chapter paragraph."
-        },
-        {
-          "text": "Second chapter paragraph."
-        }
-      ],
       "footnotes": [
         {
           "id": "footnote_001",
@@ -1740,9 +1666,7 @@ Pure fixture for `build_canonical_text`.
   "include_back_matter": false,
   "include_footnotes": false,
   "include_chapter_titles": true,
-  "include_section_titles": false,
-  "separator_between_paragraphs": "\n\n",
-  "separator_between_chapters": "\n\n\n"
+  "include_section_titles": false
 }
 ```
 
@@ -1829,8 +1753,8 @@ Verify the basic library happy path using a dynamically generated EPUB.
 **Preconditions:**
 
 * Create a temporary directory.
-* Generate fixture F001 into `tmp/epubs/minimal_valid.epub`.
-* Load official result schema `schema/epub_content_extractor.v2.2.schema.json`.
+* Generate fixture F001 from `tests/fixtures/epub_content_extractor/success/minimal_valid/fixture.json` into the test temporary directory as `minimal_valid.epub`.
+* Load official result schema `schema/epub_content_extractor.v3.0.schema.json`.
 
 **Input data:**
 Generated EPUB fixture F001.
@@ -1840,18 +1764,18 @@ Use missing config or `{}`.
 
 **Execution steps:**
 
-1. Call `extract_epub_content("tmp/epubs/minimal_valid.epub", config=None)`.
+1. Call `extract_epub_content(<generated minimal_valid.epub path>, config=None)`.
 2. Capture returned mapping.
 3. Validate returned mapping against official result schema.
 
 **Expected result:**
 
 * `status = "succeeded"`;
-* `schema_version = "epub_content_extractor.v2.2"`;
+* `schema_version = "epub_content_extractor.v3.0"`;
 * `book` exists;
 * `error` is absent;
 * `book.language = "en"`;
-* `book.title = "Minimal Test Book"`;
+* `book.title = "Minimal Valid EPUB"`;
 * `book.authors[0].name = "Jane Example"`;
 * `book.authors[0].role = "author"`;
 * at least one readable chapter exists;
@@ -1861,15 +1785,15 @@ Use missing config or `{}`.
 **Expected assertions:**
 
 * `assert result["status"] == "succeeded"`
-* `assert result["schema_version"] == "epub_content_extractor.v2.2"`
+* `assert result["schema_version"] == "epub_content_extractor.v3.0"`
 * `assert "book" in result`
 * `assert "error" not in result`
 * `assert result["book"]["language"] == "en"`
-* `assert result validates against schema/epub_content_extractor.v2.2.schema.json`
+* `assert result validates against schema/epub_content_extractor.v3.0.schema.json`
 * `assert all(d["severity"] != "error" for d in result["diagnostics"])`
 
 **Automation notes:**
-Use `ebooklib` to generate the EPUB before calling the extractor. Do not commit the generated `.epub`.
+Use the deterministic contract fixture generator to materialize the EPUB from `fixture.json` before calling the extractor. Do not commit the generated `.epub`.
 
 **Ambiguities:**
 None.
@@ -1926,7 +1850,7 @@ epub-content-extractor extract tmp/epubs/minimal_valid.epub
 * `assert exit_code == 0`
 * `assert stdout parses as JSON`
 * `assert parsed["status"] == "succeeded"`
-* `assert parsed validates against schema/epub_content_extractor.v2.2.schema.json`
+* `assert parsed validates against schema/epub_content_extractor.v3.0.schema.json`
 
 **Automation notes:**
 Do not assert exact whitespace. Compare parsed JSON.
@@ -2671,35 +2595,37 @@ Extractor must enforce per-entry and aggregate compression ratio. Ratio exceeds 
 Verify ZIP bomb protection.
 
 **Preconditions:**
-Create fixture F015 with compressed repeated content. Ensure generated ratio is greater than configured limit `1`.
+Use F015 deterministic archive-safety calculator inputs. Do not create a compressed ZIP whose ratio depends on zlib or host behavior.
 
 **Input data:**
-`tmp/epubs/high_compression_ratio.epub`.
+F015 ratio calculator inputs: compressed size `10`, uncompressed size `20`, configured max ratio `1`.
 
 **Config:**
 Use F015 config.
 
 **Execution steps:**
 
-1. Generate compressed ZIP.
-2. Confirm test fixture compression ratio exceeds `1`.
-3. Run library extraction.
-4. Inspect result.
+1. Call the archive-safety calculator or deterministic test seam with F015 sizes.
+2. Confirm computed ratio is `2.0`.
+3. Confirm the public extraction failure mapping is `epub_archive_security_violation`.
+4. Validate any structured result emitted by the seam or wrapper against the result schema.
 
 **Expected result:**
 
-* if fixture ratio exceeds `1`, `status = "failed"`;
-* `error.code = "epub_archive_security_violation"`;
-* result validates against schema.
+* computed ratio is exactly `2.0`;
+* `2.0 > 1`, so the configured ratio limit is exceeded;
+* public failure mapping is `error.code = "epub_archive_security_violation"`;
+* any structured result validates against schema.
 
 **Expected assertions:**
 
-* `assert generated_ratio > 1`
+* `assert computed_ratio == 2.0`
+* `assert computed_ratio > max_archive_compression_ratio`
 * `assert result["error"]["code"] == "epub_archive_security_violation"`
 * `assert result validates against schema`
 
 **Automation notes:**
-If compressor does not produce ratio above `1`, enlarge repeated payload until it does.
+Do not enlarge payloads until compression happens to cross the threshold. This test is deterministic and uses explicit compressed/uncompressed size inputs.
 
 **Ambiguities:**
 None.
@@ -3105,7 +3031,7 @@ Use fixture F000.
 **Execution steps:**
 
 1. Run extraction.
-2. Inspect chapter paragraph text and diagnostics.
+2. Inspect `chapter.text` and diagnostics.
 
 **Expected result:**
 
@@ -3118,7 +3044,7 @@ Use fixture F000.
 **Expected assertions:**
 
 * `assert result["status"] == "succeeded"`
-* `assert "*" in joined_chapter_paragraph_text OR warning diagnostic exists`
+* `assert "*" in chapter_text OR warning diagnostic exists`
 * `assert if diagnostic code is "footnote_duplicate_marker", severity == "warning"`
 * `assert if diagnostic code is "footnote_marker_unresolved", severity == "warning"`
 * `assert result validates against schema`
@@ -3801,7 +3727,7 @@ Diagnostics / Contract
 P0
 
 **Source requirement:**
-Every production diagnostic code must be documented. Each diagnostic code has exactly one valid severity in v2.2.
+Every production diagnostic code must be documented. Each diagnostic code has exactly one valid severity in v3.0.
 
 **Purpose:**
 Catch undocumented diagnostic codes and severity drift.
@@ -4009,7 +3935,7 @@ Case A: success result with both `book` and `error`.
 
 ```json
 {
-  "schema_version": "epub_content_extractor.v2.2",
+  "schema_version": "epub_content_extractor.v3.0",
   "status": "succeeded",
   "book": {
     "title": null,
@@ -4037,11 +3963,6 @@ Case A: success result with both `book` and `error`.
         "chapter_number": 1,
         "type": "chapter",
         "text": "Text.",
-        "paragraphs": [
-          {
-            "text": "Text."
-          }
-        ],
         "footnotes": []
       }
     ],
@@ -4057,7 +3978,7 @@ Case A: success result with both `book` and `error`.
   },
   "diagnostics": [],
   "extraction": {
-    "extractor_version": "2.2.0",
+    "extractor_version": "3.0.0",
     "started_at": "2026-05-08T10:00:00Z",
     "finished_at": "2026-05-08T10:00:01Z",
     "duration_ms": 1000,
@@ -4084,7 +4005,7 @@ Case A: success result with both `book` and `error`.
       "chapter_count": 1,
       "front_matter_section_count": 0,
       "back_matter_section_count": 0,
-      "paragraph_count": 1,
+      "paragraph_count": 0,
       "footnote_count": 0,
       "total_text_chars": 5,
       "canonical_text_chars": 5,
@@ -4100,7 +4021,7 @@ Case B: success result with error diagnostic.
 
 ```json
 {
-  "schema_version": "epub_content_extractor.v2.2",
+  "schema_version": "epub_content_extractor.v3.0",
   "status": "succeeded",
   "book": {
     "title": null,
@@ -4128,11 +4049,6 @@ Case B: success result with error diagnostic.
         "chapter_number": 1,
         "type": "chapter",
         "text": "Text.",
-        "paragraphs": [
-          {
-            "text": "Text."
-          }
-        ],
         "footnotes": []
       }
     ],
@@ -4149,7 +4065,7 @@ Case B: success result with error diagnostic.
     }
   ],
   "extraction": {
-    "extractor_version": "2.2.0",
+    "extractor_version": "3.0.0",
     "started_at": "2026-05-08T10:00:00Z",
     "finished_at": "2026-05-08T10:00:01Z",
     "duration_ms": 1000,
@@ -4176,7 +4092,7 @@ Case B: success result with error diagnostic.
       "chapter_count": 1,
       "front_matter_section_count": 0,
       "back_matter_section_count": 0,
-      "paragraph_count": 1,
+      "paragraph_count": 0,
       "footnote_count": 0,
       "total_text_chars": 5,
       "canonical_text_chars": 5,
@@ -4192,7 +4108,7 @@ Case C: result contains top-level debug while `include_debug = false`.
 
 ```json
 {
-  "schema_version": "epub_content_extractor.v2.2",
+  "schema_version": "epub_content_extractor.v3.0",
   "status": "failed",
   "error": {
     "code": "input_not_epub",
@@ -4201,7 +4117,7 @@ Case C: result contains top-level debug while `include_debug = false`.
   },
   "diagnostics": [],
   "extraction": {
-    "extractor_version": "2.2.0",
+    "extractor_version": "3.0.0",
     "started_at": "2026-05-08T10:00:00Z",
     "finished_at": "2026-05-08T10:00:00Z",
     "duration_ms": 0,
@@ -4243,6 +4159,93 @@ Case C: result contains top-level debug while `include_debug = false`.
 }
 ```
 
+
+Case D: success result contains forbidden `chapters[].paragraphs`.
+
+```json
+{
+  "schema_version": "epub_content_extractor.v3.0",
+  "status": "succeeded",
+  "book": {
+    "title": null,
+    "subtitle": null,
+    "language": "en",
+    "authors": [],
+    "contributors": [],
+    "metadata": {
+      "identifiers": [],
+      "publisher": null,
+      "published_at": null,
+      "modified_at": null,
+      "description": null,
+      "rights": null,
+      "subjects": [],
+      "source_file": {
+        "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "size_bytes": 1
+      }
+    },
+    "front_matter": [],
+    "chapters": [
+      {
+        "id": "chapter_001",
+        "chapter_number": 1,
+        "type": "chapter",
+        "text": "Text.",
+        "paragraphs": [
+          {
+            "text": "Text."
+          }
+        ],
+        "footnotes": []
+      }
+    ],
+    "back_matter": [],
+    "footnotes": [],
+    "table_of_contents": [],
+    "assets": []
+  },
+  "diagnostics": [],
+  "extraction": {
+    "extractor_version": "3.0.0",
+    "started_at": "2026-05-08T10:00:00Z",
+    "finished_at": "2026-05-08T10:00:01Z",
+    "duration_ms": 1000,
+    "config": {
+      "include_front_matter_in_canonical_text": false,
+      "include_back_matter_in_canonical_text": false,
+      "include_footnotes_in_canonical_text": false,
+      "include_chapter_titles_in_canonical_text": true,
+      "include_section_titles_in_canonical_text": false,
+      "max_epub_size_bytes": 104857600,
+      "max_html_document_size_bytes": 10485760,
+      "max_text_block_chars": 100000,
+      "pipeline_timeout_seconds": 120,
+      "html_parse_timeout_seconds": 20,
+      "max_archive_uncompressed_bytes": 524288000,
+      "max_archive_entry_count": 10000,
+      "max_archive_compression_ratio": 100,
+      "max_toc_depth": 8,
+      "max_diagnostic_count": 1000,
+      "max_output_json_bytes": 524288000,
+      "include_debug": false
+    },
+    "summary": {
+      "chapter_count": 1,
+      "front_matter_section_count": 0,
+      "back_matter_section_count": 0,
+      "paragraph_count": 0,
+      "footnote_count": 0,
+      "total_text_chars": 5,
+      "canonical_text_chars": 5,
+      "removed_section_count": 0,
+      "warning_count": 0,
+      "error_count": 0
+    }
+  }
+}
+```
+
 **Execution steps:**
 
 1. Validate each case against official result schema.
@@ -4252,13 +4255,15 @@ Case C: result contains top-level debug while `include_debug = false`.
 
 * Case A rejected because success cannot contain `error`;
 * Case B rejected because successful result cannot contain error diagnostics;
-* Case C rejected because `debug` is forbidden when `include_debug = false`.
+* Case C rejected because `debug` is forbidden when `include_debug = false`;
+* Case D rejected because `chapters[].paragraphs` is not part of the v3.0 production schema.
 
 **Expected assertions:**
 
 * `assert schema_validation(case_a) fails`
 * `assert schema_validation(case_b) fails`
 * `assert schema_validation(case_c) fails`
+* `assert schema_validation(case_d) fails`
 
 **Automation notes:**
 These are schema-only tests and do not call the extractor.
@@ -4317,20 +4322,21 @@ These should be added either after implementation exposes deterministic test sea
 Every integration test that receives a structured result must validate it against:
 
 ```text
-schema/epub_content_extractor.v2.2.schema.json
+schema/epub_content_extractor.v3.0.schema.json
 ```
 
 Required assertions:
 
 * top-level object has no unknown fields;
-* `schema_version = "epub_content_extractor.v2.2"`;
+* `schema_version = "epub_content_extractor.v3.0"`;
 * success result has `book` and no `error`;
 * failed result has `error` and no `book`;
 * `diagnostics` always exists;
 * `extraction` always exists;
 * `debug` absent when `extraction.config.include_debug = false`;
 * success result has at least one readable chapter/front/back section;
-* success result has no diagnostic with `severity = "error"`.
+* success result has no diagnostic with `severity = "error"`;
+* `chapters[]` items reject `paragraphs` because chapter paragraph segmentation is internal in v3.0.
 
 ### 8.2 Config schema validation
 
@@ -4344,15 +4350,15 @@ Config tests must validate:
 * values below minimum are rejected;
 * values above maximum are rejected;
 * maximum values are accepted;
-* `config_version` is rejected in v2.2 because not allowed by schema.
+* `config_version` is rejected in v3.0 because not allowed by schema.
 
 ### 8.3 Diagnostic registry validation
 
-Registry-driven tests MUST load `schema/epub_content_extractor_diagnostic_registry.v2.2.json` and `schema/epub_content_extractor_error_registry.v2.2.json`.
+Registry-driven tests MUST load `schema/epub_content_extractor_diagnostic_registry.v3.0.json` and `schema/epub_content_extractor_error_registry.v3.0.json`.
 
 For every production result:
 
-* diagnostic code must be one of documented v2.2 codes;
+* diagnostic code must be one of documented v3.0 codes;
 * severity must match documented matrix;
 * message must be non-empty string;
 * optional `entity_type` must be one of:
@@ -4372,7 +4378,7 @@ For every production result:
 
 ### 8.3.1 Diagnostic coverage matrix
 
-Every diagnostic code MUST have an explicit coverage status in `schema/epub_content_extractor_diagnostic_registry.v2.2.json`. The testing guide treats the registry as the machine-readable source of truth and this table as the human-readable coverage plan.
+Every diagnostic code MUST have an explicit coverage status in `schema/epub_content_extractor_diagnostic_registry.v3.0.json`. The testing guide treats the registry as the machine-readable source of truth and this table as the human-readable coverage plan.
 
 Allowed coverage statuses:
 
@@ -4385,9 +4391,9 @@ reserved_not_emitted_by_default
 requires_contract_decision
 ```
 
-For release-candidate v2.2 registries, `requires_contract_decision` MUST NOT appear. It is a draft-only status used to block release until the code is either fixture-backed, fault-injection-backed, schema-only, or explicitly `reserved_not_emitted_by_default`.
+For release-candidate v3.0 registries, `requires_contract_decision` MUST NOT appear. It is a draft-only status used to block release until the code is either fixture-backed, fault-injection-backed, schema-only, or explicitly `reserved_not_emitted_by_default`.
 
-A code marked `reserved_not_emitted_by_default` may remain in the result schema for compatibility, but production code MUST NOT emit it in v2.2. Tests MUST assert that default production fixtures do not emit reserved diagnostic codes.
+A code marked `reserved_not_emitted_by_default` may remain in the result schema for compatibility, but production code MUST NOT emit it in v3.0. Tests MUST assert that default production fixtures do not emit reserved diagnostic codes.
 
 | Diagnostic code | Coverage status | Required test or decision |
 |---|---|---|
@@ -4400,8 +4406,8 @@ A code marked `reserved_not_emitted_by_default` may remain in the result schema 
 | `table_of_contents_missing` | `integration_fixture` | TC-019 or dedicated TOC-missing fixture |
 | `toc_target_unresolved` | `integration_fixture` | TC-P1-DIAG-004 |
 | `chapter_title_detected` | `integration_fixture` | TC-001 or TC-024 |
-| `chapter_title_uncertain` | `reserved_not_emitted_by_default` | Schema-reserved in v2.2; production code MUST NOT emit by default |
-| `chapter_type_uncertain` | `reserved_not_emitted_by_default` | Schema-reserved in v2.2; production code MUST NOT emit by default |
+| `chapter_title_uncertain` | `reserved_not_emitted_by_default` | Schema-reserved in v3.0; production code MUST NOT emit by default |
+| `chapter_type_uncertain` | `reserved_not_emitted_by_default` | Schema-reserved in v3.0; production code MUST NOT emit by default |
 | `front_matter_detected` | `integration_fixture` | TC-024 |
 | `back_matter_detected` | `integration_fixture` | TC-024 |
 | `copyright_section_detected` | `integration_fixture` | TC-P1-DIAG-005 |
@@ -4422,7 +4428,7 @@ A code marked `reserved_not_emitted_by_default` may remain in the result schema 
 | `html_document_too_large_skipped` | `integration_fixture` | TC-026 |
 | `html_document_parse_timeout_skipped` | `fault_injection` | TC-P1-TIMEOUT-001 |
 | `text_block_too_large_split` | `integration_fixture` | TC-P1-LIM-004 |
-| `text_block_too_large_dropped` | `reserved_not_emitted_by_default` | Schema-reserved in v2.2; production code MUST NOT emit by default |
+| `text_block_too_large_dropped` | `reserved_not_emitted_by_default` | Schema-reserved in v3.0; production code MUST NOT emit by default |
 | `empty_readable_content` | `integration_fixture` | TC-027 when content analysis reached |
 | `quality_warning` | `integration_fixture` | TC-P1-LIM-005 |
 
@@ -4469,7 +4475,7 @@ The following test cases are mandatory before the package can claim 9+/10 automa
 | Test ID | Priority | Area | Requirement covered | Expected behavior |
 |---|---|---|---|---|
 | `TC-P0-SCHEMA-001` | P0 | Schema | Canonical schema files exist | Versioned schema files load from `schema/` and validate as Draft 2020-12 schemas |
-| `TC-P0-SCHEMA-002` | P0 | Schema | Schema IDs match v2.2 | `$id` values match documented v2.2 URIs |
+| `TC-P0-SCHEMA-002` | P0 | Schema | Schema IDs match v3.0 | `$id` values match documented v3.0 URIs |
 | `TC-P1-API-001` | P1 | API | Builder partial options | `build_canonical_text()` accepts partial boolean mappings and does not mutate inputs |
 | `TC-P1-API-002` | P1 | API | Builder rejects separators | Separator option keys raise `ValueError` |
 | `TC-P1-DIAG-001` | P1 | Diagnostics | Diagnostic registry matches result schema | Code set and severity map are identical |
@@ -4508,8 +4514,8 @@ The following test cases are mandatory before the package can claim 9+/10 automa
 **Input fixture:** Load both registry JSON files:
 
 ```text
-schema/epub_content_extractor_diagnostic_registry.v2.2.json
-schema/epub_content_extractor_error_registry.v2.2.json
+schema/epub_content_extractor_diagnostic_registry.v3.0.json
+schema/epub_content_extractor_error_registry.v3.0.json
 ```
 
 **Steps:**
@@ -4542,8 +4548,8 @@ schema/epub_content_extractor_error_registry.v2.2.json
 **Input fixture:**
 
 ```text
-docs/testing/epub_content_extractor_golden_acceptance_manifest.v2.2.json
-schema/epub_content_extractor_golden_acceptance_manifest.v2.2.schema.json
+docs/testing/epub_content_extractor_golden_acceptance_manifest.v3.0.json
+schema/epub_content_extractor_golden_acceptance_manifest.v3.0.schema.json
 ```
 
 **Steps:**
@@ -4559,7 +4565,7 @@ schema/epub_content_extractor_golden_acceptance_manifest.v2.2.schema.json
 #### TC-P1-GOLDEN-002: Minimum golden paths are complete before release
 
 **Purpose:** Prevent a release from claiming final golden-snapshot readiness without real expected outputs.  
-**Input fixture:** `docs/testing/epub_content_extractor_golden_acceptance_manifest.v2.2.json`.
+**Input fixture:** `docs/testing/epub_content_extractor_golden_acceptance_manifest.v3.0.json`.
 
 **Steps:**
 
@@ -4567,7 +4573,7 @@ schema/epub_content_extractor_golden_acceptance_manifest.v2.2.schema.json
 2. If `status = "pending_until_real_goldens_committed"`, mark the golden acceptance suite as incomplete and fail the release-readiness gate.
 3. If `status = "complete"`, assert every listed path exists.
 4. For each listed file, assert it is valid JSON.
-5. Validate each listed expected output against `schema/epub_content_extractor.v2.2.schema.json` after applying the documented snapshot-normalization policy.
+5. Validate each listed expected output against `schema/epub_content_extractor.v3.0.schema.json` after applying the documented snapshot-normalization policy.
 
 **Expected result:** release-readiness passes only when the manifest is `complete` and every minimum golden output exists and validates.  
 **Pass/Fail criteria:** fail on missing paths, placeholder files, invalid JSON, schema-invalid expected outputs, or `pending_until_real_goldens_committed` during a release-readiness run.
@@ -4701,16 +4707,74 @@ Expected protection:
 
 ## 10. Recommendations for Test Automation
 
-1. Generate all valid EPUB test fixtures dynamically with `ebooklib`.
+
+### 10.1 Required release validation command
+
+The repository MUST provide one release validation target:
+
+```bash
+python -m epub_content_extractor_contracts.validate_release_docs --repo-root .
+```
+
+The command MUST exit `0` only when all checks below pass:
+
+1. every JSON Schema file under `docs/architecture/schema/` is a valid Draft 2020-12 schema;
+2. every prose `schema/<file>` alias resolves to `docs/architecture/schema/<file>` from the explicit `--repo-root`;
+3. diagnostic and error registries validate against their registry schemas;
+4. diagnostic and error code sets match the result schema enums exactly;
+5. diagnostic severities match across registry, schema, and Markdown matrix;
+6. registry codes are unique by `code`;
+7. release registries contain no `coverage_status = "requires_contract_decision"`;
+8. every non-reserved registry entry has at least one real test ID;
+9. golden acceptance manifest validates against its schema;
+10. test coverage manifest validates against its schema;
+11. every `TC-001` through `TC-040` appears exactly once in the coverage manifest;
+12. every P0 coverage-manifest entry has `blocking_status = "ready"`;
+13. every golden manifest path resolves from the explicit repository root;
+14. every committed `fixture.json` validates against the fixture manifest schema;
+15. every committed fixture ID matches the canonical fixture ID policy;
+16. every committed `expected.normalized.json` is valid JSON and validates against the result schema;
+17. no successful golden contains `chapters[].paragraphs`;
+18. no expected output contains placeholder timestamps outside the allowed normalized RFC-3339 sentinels;
+19. committed fixture prose/source/config/golden tuples are consistent for canonical fields.
+
+The command MUST print a machine-readable JSON summary when called with `--json`. The JSON summary MUST include `status`, `error_count`, `warning_count`, and a list of failed checks with stable check IDs.
+
+Recommended stable check IDs include:
+
+```text
+schema_invalid
+registry_schema_invalid
+registry_code_drift
+registry_severity_drift
+registry_duplicate_code
+registry_unresolved_coverage
+manifest_invalid
+manifest_path_missing
+fixture_manifest_invalid
+fixture_id_mismatch
+golden_schema_invalid
+golden_forbidden_chapter_paragraphs
+golden_placeholder_timestamp
+golden_source_config_mismatch
+coverage_manifest_invalid
+coverage_p0_not_ready
+schema_alias_unresolved
+fixture_runtime_hash_mismatch
+```
+
+
+1. Generate all executable fixtures from committed `fixture.json.generator.source_spec` objects through the deterministic contract fixture generator.
 
    Required generator behavior:
 
    * create file under test temp directory;
    * write deterministic metadata;
-   * write deterministic XHTML strings;
-   * write deterministic spine/TOC;
+   * write deterministic XHTML/OPF/ZIP entry strings;
+   * write deterministic spine/TOC where relevant;
+   * use listed ZIP entry order, fixed timestamps, and declared compression;
    * avoid current timestamps in EPUB metadata unless intentionally testing date normalization;
-   * return actual file path, file size, and SHA-256 bytes.
+   * return actual file path, file size, and SHA-256 bytes and compare them with declared `expected_runtime_file` for every file-generating committed fixture.
 
 2. Generate invalid/security EPUB fixtures with `zipfile`.
 
@@ -4798,7 +4862,7 @@ This helper manifest is not part of the module output contract.
 | Every test case has expected result                                       | Pass      | Each detailed test includes exact status/error/diagnostic/schema expectations or explicit invariant-based expectations.                                                                                                                                                                                                                                                                                                                                             |
 | Every test case can be converted into automated test without reading docs | Pass      | Required inputs, configs, execution steps, and assertions are included in this guide.                                                                                                                                                                                                                                                                                                                                                                               |
 | All schema contracts are covered                                          | Pass      | Result schema, config schema, debug policy, success/failure branch, readable-content invariant, and diagnostic severity matrix are covered.                                                                                                                                                                                                                                                                                                                         |
-| Every diagnostic code has an explicit coverage status                     | Pass      | Production-emittable diagnostics map to integration, unit, schema-only, or fault-injection coverage. Schema-reserved diagnostics such as `chapter_title_uncertain`, `chapter_type_uncertain`, and `text_block_too_large_dropped` are marked `reserved_not_emitted_by_default` and MUST NOT be emitted by v2.2 production fixtures. |
+| Every diagnostic code has an explicit coverage status                     | Pass      | Production-emittable diagnostics map to integration, unit, schema-only, or fault-injection coverage. Schema-reserved diagnostics such as `chapter_title_uncertain`, `chapter_type_uncertain`, and `text_block_too_large_dropped` are marked `reserved_not_emitted_by_default` and MUST NOT be emitted by v3.0 production fixtures. |
 | Negative cases are specific and executable                                | Pass      | Missing files, directories, non-ZIP input, ZIP-not-EPUB, archive traversal, entry count, compression ratio, invalid config, and file-size limit are executable.                                                                                                                                                                                                                                                                                                     |
 | Ambiguities are explicitly marked                                         | Pass      | Known heuristic and timeout-related gaps are listed in Section 2 and in relevant test cases.                                                                                                                                                                                                                                                                                                                                                                        |
 
@@ -4811,7 +4875,7 @@ This helper manifest is not part of the module output contract.
 
 ```text
 docs/architecture/epub_content_extractor_architecture.md
-schema/epub_content_extractor_config.v2.2.schema.json
+schema/epub_content_extractor_config.v3.0.schema.json
 ```
 
 **Steps:**
@@ -4819,13 +4883,25 @@ schema/epub_content_extractor_config.v2.2.schema.json
 1. Load the canonical config schema.
 2. Inspect the architecture Markdown Section 4.1.1.
 3. If a full inline config schema block is present, assert that the `$schema` property includes both `format: "uri"` and `pattern: "^[A-Za-z][A-Za-z0-9+.-]*:"`.
-4. If the inline schema block is replaced by a reference-only section in the future, assert that the section names `schema/epub_content_extractor_config.v2.2.schema.json` as the normative source.
+4. If the inline schema block is replaced by a reference-only section in the future, assert that the section names `schema/epub_content_extractor_config.v3.0.schema.json` as the normative source.
 
 **Expected result:** The Markdown architecture does not imply weaker `$schema` validation than the canonical schema file.
 
 **Pass/Fail criteria:** Fail if the embedded Markdown copy omits canonical `$schema` constraints or describes `$schema` as a non-absolute/non-URI value.
 
 
-### Final v2.2 minimum golden set
+### Final v3.0 minimum golden set
 
-The seven `expected.normalized.json` files listed by `docs/testing/epub_content_extractor_golden_acceptance_manifest.v2.2.json` are included as manually approved contract examples. They are not placeholders. They use schema-preserving normalized timestamps and MUST be treated as normative v2.2 snapshot baselines until an accepted implementation deliberately updates them through review.
+The seven `expected.normalized.json` files listed by `docs/testing/epub_content_extractor_golden_acceptance_manifest.v3.0.json` are included as manually approved contract examples. They are not placeholders. They use schema-preserving normalized timestamps and MUST be treated as normative v3.0 snapshot baselines until an accepted implementation deliberately updates them through review. Their companion `fixture.json` files under repo-root `tests/fixtures/...` contain executable machine-readable source specs and must remain consistent with the committed goldens.
+
+### v3.0 chapter paragraph contract update
+
+The v3.0 public result contract intentionally removes `chapters[].paragraphs`. Chapter body segmentation may still exist internally, but production output exposes chapter readable content only through `chapter.text` plus `chapter.footnotes[]`. Front matter and back matter sections continue to expose `paragraphs[]` because their section-level paragraph arrays remain part of the public schema.
+
+Testing implications:
+
+* schema validation MUST reject any production `chapters[]` item that contains `paragraphs`;
+* fixture snapshots MUST omit `chapters[].paragraphs`;
+* canonical text builder tests MUST use `chapter.text` directly for chapter bodies;
+* `extraction.summary.paragraph_count` MUST count only emitted front/back matter `EpubParagraph` objects;
+* assertions that previously joined `chapter.paragraphs[].text` must inspect `chapter.text` instead.

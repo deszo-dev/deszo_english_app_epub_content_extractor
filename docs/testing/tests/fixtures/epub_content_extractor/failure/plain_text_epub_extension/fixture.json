@@ -1,12 +1,28 @@
 {
-  "fixture_id": "F013_PLAIN_TEXT_EPUB_EXTENSION",
+  "fixture_id": "F011_PLAIN_TEXT_EPUB_EXTENSION",
   "kind": "invalid_file",
-  "purpose": "Plain text file with .epub extension must fail as input_not_epub.",
+  "purpose": "Plain UTF-8 text file with .epub extension must fail as input_not_epub.",
   "generator": {
-    "tool": "contract_fixture_spec.v2.2",
-    "version_policy": "Generator MUST produce byte-stable ZIP entries with fixed ordering and timestamps.",
+    "tool": "contract_fixture_spec.v3.0",
+    "version_policy": "Generator MUST produce byte-stable files from listed source_spec fields with fixed ordering, timestamps, compression, and UTF-8 encoding where applicable.",
     "runtime_input": "input.epub",
-    "source_spec": "This fixture is a manually approved v2.2 contract baseline; generated binary inputs are not committed."
+    "source_spec": {
+      "format": "plain_file",
+      "determinism": {
+        "zip_entry_order": "listed_order",
+        "zip_entry_timestamp": "2020-01-01T00:00:00Z",
+        "compression": "stored"
+      },
+      "plain_file": {
+        "encoding": "utf-8",
+        "content": "This is not a ZIP-based EPUB file.\n"
+      },
+      "expected_runtime_file": {
+        "sha256": "21251e42b283688bde1633ad119c48258b66de262dab3ea1c213f1716d7600a7",
+        "size_bytes": 35,
+        "file_name": "input.epub"
+      }
+    }
   },
   "expected_artifacts": {
     "config": "config.json",
@@ -14,6 +30,7 @@
   },
   "notes": [
     "expected.normalized.json uses schema-preserving normalized timestamps.",
-    "Do not replace with implementation output unless the delta is reviewed as a contract change."
+    "Do not replace with implementation output unless the delta is reviewed as a contract change.",
+    "runtime input files are generated from this machine-readable source_spec; binary EPUB/ZIP files are never committed."
   ]
 }

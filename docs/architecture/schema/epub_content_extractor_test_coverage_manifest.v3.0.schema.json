@@ -1,0 +1,168 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.deszo.local/epub_content_extractor_test_coverage_manifest.v3.0.schema.json",
+  "title": "EpubContentExtractorTestCoverageManifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "manifest_version",
+    "result_schema_version",
+    "path_base",
+    "tests"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "format": "uri"
+    },
+    "manifest_version": {
+      "const": "epub_content_extractor_test_coverage_manifest.v3.0"
+    },
+    "result_schema_version": {
+      "const": "epub_content_extractor.v3.0"
+    },
+    "path_base": {
+      "const": "repo_root"
+    },
+    "tests": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/test_coverage_entry"
+      }
+    }
+  },
+  "$defs": {
+    "nullable_repo_path": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^(docs|tests)/[^\\\\]+.*$"
+    },
+    "test_coverage_entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "test_id",
+        "priority",
+        "fixture_id",
+        "fixture_source",
+        "fixture_path",
+        "expected_output_path",
+        "assertion_mode",
+        "blocking_status"
+      ],
+      "properties": {
+        "test_id": {
+          "type": "string",
+          "pattern": "^TC-[0-9]{3}$"
+        },
+        "priority": {
+          "enum": [
+            "P0",
+            "P1",
+            "P2"
+          ]
+        },
+        "fixture_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^F[0-9]{3}$"
+        },
+        "fixture_source": {
+          "enum": [
+            "committed_golden",
+            "committed_invariant",
+            "inline_fixture",
+            "schema_only",
+            "fault_injection",
+            "no_fixture_required"
+          ]
+        },
+        "fixture_path": {
+          "$ref": "#/$defs/nullable_repo_path"
+        },
+        "expected_output_path": {
+          "$ref": "#/$defs/nullable_repo_path"
+        },
+        "assertion_mode": {
+          "enum": [
+            "exact_golden",
+            "schema_valid",
+            "invariant",
+            "error_code",
+            "cli_contract",
+            "fault_injection",
+            "exception",
+            "release_validation"
+          ]
+        },
+        "blocking_status": {
+          "enum": [
+            "ready",
+            "blocked_by_missing_fixture",
+            "blocked_by_contract_decision"
+          ]
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "fixture_source": {
+                "const": "committed_golden"
+              }
+            },
+            "required": [
+              "fixture_source"
+            ]
+          },
+          "then": {
+            "properties": {
+              "fixture_path": {
+                "type": "string"
+              },
+              "expected_output_path": {
+                "type": "string"
+              },
+              "blocking_status": {
+                "const": "ready"
+              }
+            },
+            "required": [
+              "fixture_path",
+              "expected_output_path"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "priority": {
+                "const": "P0"
+              }
+            },
+            "required": [
+              "priority"
+            ]
+          },
+          "then": {
+            "properties": {
+              "blocking_status": {
+                "const": "ready"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

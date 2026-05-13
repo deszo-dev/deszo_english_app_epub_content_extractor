@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.deszo.local/epub_canonical_text_build_options.v3.0.schema.json",
+  "title": "EpubCanonicalTextBuildOptions",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "include_front_matter": {
+      "type": "boolean",
+      "default": false
+    },
+    "include_back_matter": {
+      "type": "boolean",
+      "default": false
+    },
+    "include_footnotes": {
+      "type": "boolean",
+      "default": false
+    },
+    "include_chapter_titles": {
+      "type": "boolean",
+      "default": true
+    },
+    "include_section_titles": {
+      "type": "boolean",
+      "default": false
+    }
+  }
+}

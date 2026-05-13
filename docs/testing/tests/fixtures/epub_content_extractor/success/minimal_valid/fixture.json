@@ -1,12 +1,56 @@
 {
   "fixture_id": "F001_MINIMAL_VALID",
   "kind": "valid_epub",
-  "purpose": "Minimal one-chapter EPUB with metadata, TOC, and no warnings.",
+  "purpose": "Minimal one-chapter EPUB matching the canonical v3.0 minimal golden.",
   "generator": {
-    "tool": "contract_fixture_spec.v2.2",
-    "version_policy": "Generator MUST produce byte-stable ZIP entries with fixed ordering and timestamps.",
-    "runtime_input": "input.epub",
-    "source_spec": "This fixture is a manually approved v2.2 contract baseline; generated binary inputs are not committed."
+    "tool": "contract_fixture_spec.v3.0",
+    "version_policy": "Generator MUST produce byte-stable files from listed source_spec fields with fixed ordering, timestamps, compression, and UTF-8 encoding where applicable.",
+    "runtime_input": "minimal_valid.epub",
+    "source_spec": {
+      "format": "zip_entries",
+      "determinism": {
+        "zip_entry_order": "listed_order",
+        "zip_entry_timestamp": "2020-01-01T00:00:00Z",
+        "compression": "stored"
+      },
+      "zip_entries": [
+        {
+          "path": "mimetype",
+          "content_kind": "text",
+          "content": "application/epub+zip",
+          "media_type": "application/epub+zip"
+        },
+        {
+          "path": "META-INF/container.xml",
+          "content_kind": "text",
+          "content": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<container version=\"1.0\" xmlns=\"urn:oasis:names:tc:opendocument:xmlns:container\">\n  <rootfiles>\n    <rootfile full-path=\"OEBPS/content.opf\" media-type=\"application/oebps-package+xml\"/>\n  </rootfiles>\n</container>\n",
+          "media_type": "application/xml"
+        },
+        {
+          "path": "OEBPS/content.opf",
+          "content_kind": "text",
+          "content": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<package xmlns=\"http://www.idpf.org/2007/opf\" version=\"3.0\" unique-identifier=\"bookid\">\n  <metadata xmlns:dc=\"http://purl.org/dc/elements/1.1/\">\n    <dc:identifier id=\"bookid\">urn:uuid:00000000-0000-4000-8000-000000000001</dc:identifier>\n    <dc:title>Minimal Valid EPUB</dc:title>\n    <dc:language>en</dc:language>\n    <dc:creator>Jane Example</dc:creator>\n  </metadata>\n  <manifest>\n    <item id=\"nav\" href=\"nav.xhtml\" properties=\"nav\" media-type=\"application/xhtml+xml\"/>\n    <item id=\"chap1\" href=\"chapter_1.xhtml\" media-type=\"application/xhtml+xml\"/>\n  </manifest>\n  <spine>\n    <itemref idref=\"chap1\"/>\n  </spine>\n</package>\n",
+          "media_type": "application/oebps-package+xml"
+        },
+        {
+          "path": "OEBPS/nav.xhtml",
+          "content_kind": "text",
+          "content": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<html xmlns=\"http://www.w3.org/1999/xhtml\" xmlns:epub=\"http://www.idpf.org/2007/ops\">\n  <head><title>Navigation</title></head>\n  <body><nav epub:type=\"toc\"><ol><li><a href=\"chapter_1.xhtml\">Chapter 1</a></li></ol></nav></body>\n</html>\n",
+          "media_type": "application/xhtml+xml"
+        },
+        {
+          "path": "OEBPS/chapter_1.xhtml",
+          "content_kind": "text",
+          "content": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<html xmlns=\"http://www.w3.org/1999/xhtml\">\n  <head><title>Chapter 1</title></head>\n  <body>\n    <h1>Chapter 1</h1>\n    <p>Hello world.</p>\n  </body>\n</html>\n",
+          "media_type": "application/xhtml+xml"
+        }
+      ],
+      "expected_runtime_file": {
+        "sha256": "7aa549fe11725c70362152ff6818bc3125b20c042ef5a2bdb778772434e8b932",
+        "size_bytes": 1981,
+        "file_name": "minimal_valid.epub"
+      }
+    }
   },
   "expected_artifacts": {
     "config": "config.json",
@@ -14,6 +58,7 @@
   },
   "notes": [
     "expected.normalized.json uses schema-preserving normalized timestamps.",
-    "Do not replace with implementation output unless the delta is reviewed as a contract change."
+    "Do not replace with implementation output unless the delta is reviewed as a contract change.",
+    "runtime input files are generated from this machine-readable source_spec; binary EPUB/ZIP files are never committed."
   ]
 }

@@ -1,12 +1,80 @@
 {
-  "fixture_id": "F024_COMPLEX_VALID",
+  "fixture_id": "F002_COMPLEX_VALID",
   "kind": "valid_epub",
-  "purpose": "Complex valid EPUB with front matter, back matter, two chapters, one asset, and one footnote.",
+  "purpose": "Complex EPUB matching the canonical v3.0 complex golden: title page, two chapters, note, TOC, and cover metadata.",
   "generator": {
-    "tool": "contract_fixture_spec.v2.2",
-    "version_policy": "Generator MUST produce byte-stable ZIP entries with fixed ordering and timestamps.",
-    "runtime_input": "input.epub",
-    "source_spec": "This fixture is a manually approved v2.2 contract baseline; generated binary inputs are not committed."
+    "tool": "contract_fixture_spec.v3.0",
+    "version_policy": "Generator MUST produce byte-stable files from listed source_spec fields with fixed ordering, timestamps, compression, and UTF-8 encoding where applicable.",
+    "runtime_input": "complex_valid.epub",
+    "source_spec": {
+      "format": "zip_entries",
+      "determinism": {
+        "zip_entry_order": "listed_order",
+        "zip_entry_timestamp": "2020-01-01T00:00:00Z",
+        "compression": "stored"
+      },
+      "zip_entries": [
+        {
+          "path": "mimetype",
+          "content_kind": "text",
+          "content": "application/epub+zip",
+          "media_type": "application/epub+zip"
+        },
+        {
+          "path": "META-INF/container.xml",
+          "content_kind": "text",
+          "content": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<container version=\"1.0\" xmlns=\"urn:oasis:names:tc:opendocument:xmlns:container\">\n  <rootfiles><rootfile full-path=\"OEBPS/content.opf\" media-type=\"application/oebps-package+xml\"/></rootfiles>\n</container>\n",
+          "media_type": "application/xml"
+        },
+        {
+          "path": "OEBPS/content.opf",
+          "content_kind": "text",
+          "content": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<package xmlns=\"http://www.idpf.org/2007/opf\" version=\"3.0\" unique-identifier=\"bookid\">\n  <metadata xmlns:dc=\"http://purl.org/dc/elements/1.1/\">\n    <dc:identifier id=\"bookid\">9780000000002</dc:identifier>\n    <dc:title>Complex Valid EPUB</dc:title>\n    <meta property=\"title-type\">main</meta>\n    <dc:title id=\"subtitle\">A Contract Fixture</dc:title>\n    <meta refines=\"#subtitle\" property=\"title-type\">subtitle</meta>\n    <dc:language>en-US</dc:language>\n    <dc:creator>Jane Example</dc:creator>\n    <dc:publisher>Deszo Test Press</dc:publisher>\n    <dc:date>2020-01-02</dc:date>\n    <meta property=\"dcterms:modified\">2020-01-03T00:00:00Z</meta>\n    <dc:description>A deterministic EPUB fixture for contract testing.</dc:description>\n    <dc:rights>Public domain test fixture.</dc:rights>\n    <dc:subject>Testing</dc:subject>\n    <dc:subject>Fiction</dc:subject>\n  </metadata>\n  <manifest>\n    <item id=\"nav\" href=\"nav.xhtml\" properties=\"nav\" media-type=\"application/xhtml+xml\"/>\n    <item id=\"title\" href=\"title_page.xhtml\" media-type=\"application/xhtml+xml\"/>\n    <item id=\"chap1\" href=\"chapter_1.xhtml\" media-type=\"application/xhtml+xml\"/>\n    <item id=\"chap2\" href=\"chapter_2.xhtml\" media-type=\"application/xhtml+xml\"/>\n    <item id=\"notes\" href=\"notes.xhtml\" media-type=\"application/xhtml+xml\"/>\n    <item id=\"cover\" href=\"images/cover.png\" media-type=\"image/png\" properties=\"cover-image\"/>\n  </manifest>\n  <spine>\n    <itemref idref=\"title\"/>\n    <itemref idref=\"chap1\"/>\n    <itemref idref=\"chap2\"/>\n    <itemref idref=\"notes\"/>\n  </spine>\n</package>\n",
+          "media_type": "application/oebps-package+xml"
+        },
+        {
+          "path": "OEBPS/nav.xhtml",
+          "content_kind": "text",
+          "content": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<html xmlns=\"http://www.w3.org/1999/xhtml\" xmlns:epub=\"http://www.idpf.org/2007/ops\">\n  <head><title>Navigation</title></head>\n  <body><nav epub:type=\"toc\"><ol>\n    <li><a href=\"title_page.xhtml\">Title Page</a></li>\n    <li><a href=\"chapter_1.xhtml\">Chapter 1</a></li>\n    <li><a href=\"chapter_2.xhtml\">Chapter 2</a></li>\n    <li><a href=\"notes.xhtml\">Notes</a></li>\n  </ol></nav></body>\n</html>\n",
+          "media_type": "application/xhtml+xml"
+        },
+        {
+          "path": "OEBPS/title_page.xhtml",
+          "content_kind": "text",
+          "content": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<html xmlns=\"http://www.w3.org/1999/xhtml\"><head><title>Title Page</title></head><body>\n  <h1>Title Page</h1>\n  <p>Complex Valid EPUB</p>\n  <p>Jane Example</p>\n</body></html>\n",
+          "media_type": "application/xhtml+xml"
+        },
+        {
+          "path": "OEBPS/chapter_1.xhtml",
+          "content_kind": "text",
+          "content": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<html xmlns=\"http://www.w3.org/1999/xhtml\"><head><title>Chapter 1</title></head><body>\n  <h1>Chapter 1</h1>\n  <p>The first paragraph introduces the test book.<a href=\"notes.xhtml#fn1\"><sup>1</sup></a></p>\n  <p>The second paragraph keeps stable ordering.</p>\n  <img src=\"images/cover.png\" alt=\"Plain test cover\"/>\n</body></html>\n",
+          "media_type": "application/xhtml+xml"
+        },
+        {
+          "path": "OEBPS/chapter_2.xhtml",
+          "content_kind": "text",
+          "content": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<html xmlns=\"http://www.w3.org/1999/xhtml\"><head><title>Chapter 2</title></head><body>\n  <h1>Chapter 2</h1>\n  <p>A second chapter provides another body paragraph.</p>\n</body></html>\n",
+          "media_type": "application/xhtml+xml"
+        },
+        {
+          "path": "OEBPS/notes.xhtml",
+          "content_kind": "text",
+          "content": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<html xmlns=\"http://www.w3.org/1999/xhtml\"><head><title>Notes</title></head><body>\n  <h1>Notes</h1>\n  <aside id=\"fn1\"><p><sup>1</sup> A short explanatory note.</p></aside>\n  <p>End notes for the test edition.</p>\n</body></html>\n",
+          "media_type": "application/xhtml+xml"
+        },
+        {
+          "path": "OEBPS/images/cover.png",
+          "content_kind": "base64",
+          "content": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=",
+          "media_type": "image/png"
+        }
+      ],
+      "expected_runtime_file": {
+        "sha256": "3642d20c01c7dbabeb15efde2c219a1cb525bbd813643a5d60eb85f639e13b3f",
+        "size_bytes": 4472,
+        "file_name": "complex_valid.epub"
+      }
+    }
   },
   "expected_artifacts": {
     "config": "config.json",
@@ -14,6 +82,7 @@
   },
   "notes": [
     "expected.normalized.json uses schema-preserving normalized timestamps.",
-    "Do not replace with implementation output unless the delta is reviewed as a contract change."
+    "Do not replace with implementation output unless the delta is reviewed as a contract change.",
+    "runtime input files are generated from this machine-readable source_spec; binary EPUB/ZIP files are never committed."
   ]
 }

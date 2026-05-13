@@ -1,7 +1,8 @@
 {
-  "$schema": "https://schemas.deszo.local/epub_content_extractor_golden_acceptance_manifest.v2.2.schema.json",
-  "manifest_version": "epub_content_extractor_golden_acceptance_manifest.v2.2",
-  "rule": "Minimum v2.2 golden outputs are manually approved contract examples. Release validation must fail if any listed expected.normalized.json path is missing, placeholder-like, invalid JSON, or not valid against schema/epub_content_extractor.v2.2.schema.json after schema-preserving snapshot normalization.",
+  "$schema": "https://schemas.deszo.local/epub_content_extractor_golden_acceptance_manifest.v3.0.schema.json",
+  "manifest_version": "epub_content_extractor_golden_acceptance_manifest.v3.0",
+  "path_base": "repo_root",
+  "rule": "Minimum v3.0 golden outputs are manually approved contract examples. Release validation must fail if any listed expected.normalized.json path is missing, placeholder-like, invalid JSON, or not valid against schema/epub_content_extractor.v3.0.schema.json after schema-preserving snapshot normalization.",
   "minimum_required_goldens": [
     "tests/fixtures/epub_content_extractor/success/minimal_valid/expected.normalized.json",
     "tests/fixtures/epub_content_extractor/success/complex_valid/expected.normalized.json",
