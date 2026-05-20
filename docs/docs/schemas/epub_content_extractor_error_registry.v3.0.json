@@ -1,0 +1,184 @@
+{
+  "$schema": "https://schemas.deszo.local/epub_content_extractor_error_registry.v3.0.schema.json",
+  "registry_version": "epub_content_extractor_error_registry.v3.0",
+  "result_schema_version": "epub_content_extractor.v3.0",
+  "message_stability": "not_stable",
+  "errors": [
+    {
+      "code": "invalid_config",
+      "when_emitted": "Config file cannot be parsed as JSON or config fails schema validation",
+      "recoverable": false,
+      "result_status": "failed",
+      "library_behavior": "structured_failed_result",
+      "cli_exit_code": 4,
+      "cli_json_emission": "yes, if selected output channel is available",
+      "message_stability": "not_stable",
+      "coverage_test_ids": [
+        "TC-006",
+        "TC-032",
+        "TC-P1-CFG-001"
+      ],
+      "coverage_status": "integration_fixture"
+    },
+    {
+      "code": "input_file_not_found",
+      "when_emitted": "`input_path` does not exist, including broken symlink",
+      "recoverable": false,
+      "result_status": "failed",
+      "library_behavior": "structured_failed_result",
+      "cli_exit_code": 1,
+      "cli_json_emission": "yes",
+      "message_stability": "not_stable",
+      "coverage_test_ids": [
+        "TC-010",
+        "TC-P1-IN-001",
+        "TC-P1-IN-004"
+      ],
+      "coverage_status": "unit_fixture"
+    },
+    {
+      "code": "input_not_file",
+      "when_emitted": "`input_path` exists but is not a regular local file",
+      "recoverable": false,
+      "result_status": "failed",
+      "library_behavior": "structured_failed_result",
+      "cli_exit_code": 1,
+      "cli_json_emission": "yes",
+      "message_stability": "not_stable",
+      "coverage_test_ids": [
+        "TC-011",
+        "TC-P1-IN-005"
+      ],
+      "coverage_status": "unit_fixture"
+    },
+    {
+      "code": "input_not_epub",
+      "when_emitted": "File cannot be opened as a ZIP-based EPUB container",
+      "recoverable": false,
+      "result_status": "failed",
+      "library_behavior": "structured_failed_result",
+      "cli_exit_code": 1,
+      "cli_json_emission": "yes",
+      "message_stability": "not_stable",
+      "coverage_test_ids": [
+        "TC-013"
+      ],
+      "coverage_status": "integration_fixture"
+    },
+    {
+      "code": "epub_file_too_large",
+      "when_emitted": "Input file bytes exceed `max_epub_size_bytes`",
+      "recoverable": false,
+      "result_status": "failed",
+      "library_behavior": "structured_failed_result",
+      "cli_exit_code": 1,
+      "cli_json_emission": "yes",
+      "message_stability": "not_stable",
+      "coverage_test_ids": [
+        "TC-018"
+      ],
+      "coverage_status": "unit_fixture"
+    },
+    {
+      "code": "epub_open_failed",
+      "when_emitted": "File appears to be accessible but EPUB container cannot be read after path/size checks, including permission/read errors",
+      "recoverable": false,
+      "result_status": "failed",
+      "library_behavior": "structured_failed_result",
+      "cli_exit_code": 1,
+      "cli_json_emission": "yes",
+      "message_stability": "not_stable",
+      "coverage_test_ids": [
+        "TC-P1-IN-006"
+      ],
+      "coverage_status": "fault_injection"
+    },
+    {
+      "code": "epub_manifest_unreadable",
+      "when_emitted": "ZIP container opens but EPUB package/OPF manifest cannot be located or parsed",
+      "recoverable": false,
+      "result_status": "failed",
+      "library_behavior": "structured_failed_result",
+      "cli_exit_code": 1,
+      "cli_json_emission": "yes",
+      "message_stability": "not_stable",
+      "coverage_test_ids": [
+        "TC-014"
+      ],
+      "coverage_status": "integration_fixture"
+    },
+    {
+      "code": "epub_archive_security_violation",
+      "when_emitted": "Archive safety policy fails: path traversal, absolute internal path, excessive entries, excessive uncompressed bytes, excessive compression ratio, malformed central directory, or forbidden external resolution attempt",
+      "recoverable": false,
+      "result_status": "failed",
+      "library_behavior": "structured_failed_result",
+      "cli_exit_code": 1,
+      "cli_json_emission": "yes",
+      "message_stability": "not_stable",
+      "coverage_test_ids": [
+        "TC-015",
+        "TC-P1-SEC-001"
+      ],
+      "coverage_status": "integration_fixture"
+    },
+    {
+      "code": "no_readable_content",
+      "when_emitted": "Extraction completes or all readable candidates are skipped/dropped/timed out and no readable content remains",
+      "recoverable": false,
+      "result_status": "failed",
+      "library_behavior": "structured_failed_result",
+      "cli_exit_code": 1,
+      "cli_json_emission": "yes",
+      "message_stability": "not_stable",
+      "coverage_test_ids": [
+        "TC-027"
+      ],
+      "coverage_status": "integration_fixture"
+    },
+    {
+      "code": "pipeline_timeout",
+      "when_emitted": "Whole extraction exceeds `pipeline_timeout_seconds`",
+      "recoverable": false,
+      "result_status": "failed",
+      "library_behavior": "structured_failed_result",
+      "cli_exit_code": 1,
+      "cli_json_emission": "yes, if result construction is possible",
+      "message_stability": "not_stable",
+      "coverage_test_ids": [
+        "TC-P1-TIMEOUT-002"
+      ],
+      "coverage_status": "fault_injection"
+    },
+    {
+      "code": "output_write_failed",
+      "when_emitted": "Selected CLI output destination cannot be written",
+      "recoverable": false,
+      "result_status": "failed",
+      "library_behavior": "not_applicable_for_library_unless_output_writer_is_used",
+      "cli_exit_code": 3,
+      "cli_json_emission": "no, if selected output channel is unavailable",
+      "message_stability": "not_stable",
+      "coverage_test_ids": [
+        "TC-034",
+        "TC-P1-OUT-001"
+      ],
+      "coverage_status": "fault_injection"
+    },
+    {
+      "code": "internal_error",
+      "when_emitted": "Unexpected implementation defect",
+      "recoverable": false,
+      "result_status": "failed",
+      "library_behavior": "structured_failed_result",
+      "cli_exit_code": 99,
+      "cli_json_emission": "yes, only if result construction and selected output channel are available",
+      "message_stability": "not_stable",
+      "coverage_test_ids": [
+        "TC-P1-ERR-001",
+        "TC-P1-LIM-006"
+      ],
+      "coverage_status": "fault_injection"
+    }
+  ]
+}

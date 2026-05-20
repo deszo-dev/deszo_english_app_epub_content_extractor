@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Mutation Probes Schema",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "probes"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string"
+    },
+    "probes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "priority",
+          "phase",
+          "target",
+          "mutation",
+          "expected_failure",
+          "validator_command",
+          "executable"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^PROBE-"
+          },
+          "priority": {
+            "type": "string"
+          },
+          "phase": {
+            "enum": [
+              "static_docs",
+              "post_implementation"
+            ]
+          },
+          "target": {
+            "type": "string"
+          },
+          "mutation": {
+            "type": "string",
+            "minLength": 1
+          },
+          "expected_failure": {
+            "type": "string",
+            "minLength": 1
+          },
+          "validator_command": {
+            "type": "string",
+            "minLength": 1
+          },
+          "executable": {
+            "type": "boolean"
+          },
+          "implementation_required": {
+            "type": "boolean"
+          },
+          "proof_policy": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": false
+}

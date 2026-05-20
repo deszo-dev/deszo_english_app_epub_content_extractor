@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Docs Manifest Schema",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "package",
+    "markdown_files",
+    "schemas",
+    "contracts",
+    "implementation_required_for_static_review"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string"
+    },
+    "package": {
+      "type": "string"
+    },
+    "markdown_files": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^docs/.+\\.md$"
+      }
+    },
+    "schemas": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^docs/schemas/.+"
+      }
+    },
+    "contracts": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^docs/contracts/.+"
+      }
+    },
+    "implementation_required_for_static_review": {
+      "type": "boolean"
+    }
+  }
+}

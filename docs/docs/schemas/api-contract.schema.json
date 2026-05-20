@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "API Contract Schema",
+  "type": "object",
+  "required": [
+    "module",
+    "contract_version",
+    "implementation_required_for_static_review",
+    "public_api"
+  ],
+  "properties": {
+    "module": {
+      "type": "string"
+    },
+    "contract_version": {
+      "type": "string"
+    },
+    "schema_version": {
+      "type": "string"
+    },
+    "implementation_required_for_static_review": {
+      "type": "boolean"
+    },
+    "source_of_truth": {
+      "type": "object"
+    },
+    "public_api": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "kind",
+          "import_path",
+          "stability",
+          "description",
+          "docs_path",
+          "docs_anchor",
+          "examples"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "kind": {
+            "enum": [
+              "function",
+              "class",
+              "dataclass_or_model",
+              "exception"
+            ]
+          },
+          "import_path": {
+            "type": "string",
+            "pattern": "^epub_content_extractor\\."
+          },
+          "stability": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "docs_path": {
+            "type": "string",
+            "pattern": "^docs/.+\\.md$"
+          },
+          "docs_anchor": {
+            "type": "string",
+            "pattern": "^<!-- api: .+ -->$"
+          },
+          "signature": {
+            "type": "string"
+          },
+          "parameters": {
+            "type": "array"
+          },
+          "returns": {
+            "type": [
+              "object",
+              "string"
+            ]
+          },
+          "raises": {
+            "type": "array"
+          },
+          "side_effects": {
+            "type": "array"
+          },
+          "deterministic": {
+            "type": "boolean"
+          },
+          "fields": {
+            "type": "array"
+          },
+          "trigger_condition": {
+            "type": "string"
+          },
+          "recovery": {
+            "type": "string"
+          },
+          "examples": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "pattern": "^examples/.+\\.py$"
+            }
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

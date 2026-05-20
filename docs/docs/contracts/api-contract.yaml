@@ -1,0 +1,422 @@
+module: epub_content_extractor
+contract_version: 3.0.0
+schema_version: epub_content_extractor.v3.0
+implementation_required_for_static_review: false
+source_of_truth:
+  result_schema: docs/schemas/epub_content_extractor.v3.0.schema.json
+  config_schema: docs/schemas/epub_content_extractor_config.v3.0.schema.json
+  canonical_text_options_schema: docs/schemas/epub_canonical_text_build_options.v3.0.schema.json
+  diagnostic_registry: docs/contracts/diagnostics-registry.json
+  error_registry: docs/contracts/error-registry.json
+public_api:
+- id: extract_epub_content
+  name: extract_epub_content
+  kind: function
+  import_path: epub_content_extractor.extract_epub_content
+  stability: stable
+  description: Extract a local EPUB file into a structured JSON-serializable result object.
+  signature: 'extract_epub_content(input_path: str | Path, config: EpubContentExtractorConfig | Mapping[str, object] | None
+    = None) -> EpubContentExtractionResult'
+  parameters:
+  - name: input_path
+    type: str | pathlib.Path
+    required: true
+    default: null
+    description: Path to a local readable EPUB-like file.
+  - name: config
+    type: EpubContentExtractorConfig | Mapping[str, object] | None
+    required: false
+    default: null
+    description: Optional closed extractor config.
+  returns:
+    type: EpubContentExtractionResult
+    schema: docs/schemas/epub_content_extractor.v3.0.schema.json
+    description: Structured result with diagnostics, extraction metadata, and book or error.
+  raises:
+  - exception: TypeError
+    when: Programmer-error input such as input_path=None.
+    recovery: Pass str or pathlib.Path.
+  side_effects:
+  - Reads the local input file.
+  deterministic: true
+  examples:
+  - examples/how_to_start.py
+  - examples/public_api_examples.py
+  - examples/batch_usage.py
+  - examples/error_handling.py
+  docs_path: docs/api/functions.md
+  docs_anchor: '<!-- api: extract_epub_content -->'
+- id: build_canonical_text
+  name: build_canonical_text
+  kind: function
+  import_path: epub_content_extractor.build_canonical_text
+  stability: stable
+  description: Build canonical plain text from an extracted book object.
+  signature: 'build_canonical_text(book: EpubBook | Mapping[str, object], options: EpubCanonicalTextBuildOptions | Mapping[str,
+    bool] | None = None) -> str'
+  parameters:
+  - name: book
+    type: EpubBook | Mapping[str, object]
+    required: true
+    default: null
+    description: Book from a succeeded extraction.
+  - name: options
+    type: EpubCanonicalTextBuildOptions | Mapping[str, bool] | None
+    required: false
+    default: null
+    description: Closed boolean option mapping.
+  returns:
+    type: str
+    description: Deterministically ordered canonical text.
+  raises:
+  - exception: TypeError
+    when: Book object has invalid shape.
+    recovery: Pass result.book from a succeeded extraction.
+  - exception: ValueError
+    when: Options contain unknown keys or non-boolean values.
+    recovery: Validate against options schema.
+  side_effects: []
+  deterministic: true
+  examples:
+  - examples/public_api_examples.py
+  - examples/batch_usage.py
+  docs_path: docs/api/functions.md
+  docs_anchor: '<!-- api: build_canonical_text -->'
+- id: EpubContentExtractorConfig
+  name: EpubContentExtractorConfig
+  kind: dataclass_or_model
+  import_path: epub_content_extractor.EpubContentExtractorConfig
+  stability: stable
+  description: Typed representation of the closed extractor configuration schema.
+  signature: EpubContentExtractorConfig(**fields)
+  fields:
+  - name: include_front_matter_in_canonical_text
+    type: boolean
+    required: false
+    default: false
+    description: Include front-matter text blocks when building canonical text from extraction output.
+  - name: include_back_matter_in_canonical_text
+    type: boolean
+    required: false
+    default: false
+    description: Include back-matter text blocks when building canonical text from extraction output.
+  - name: include_footnotes_in_canonical_text
+    type: boolean
+    required: false
+    default: false
+    description: Include footnote/endnote text blocks in canonical text.
+  - name: include_chapter_titles_in_canonical_text
+    type: boolean
+    required: false
+    default: true
+    description: Include normalized chapter titles in canonical text.
+  - name: include_section_titles_in_canonical_text
+    type: boolean
+    required: false
+    default: false
+    description: Include normalized section titles in canonical text.
+  - name: max_epub_size_bytes
+    type: integer
+    required: false
+    default: 104857600
+    description: Reject input files larger than this many bytes before archive parsing.
+  - name: max_html_document_size_bytes
+    type: integer
+    required: false
+    default: 10485760
+    description: Reject or skip individual HTML/XHTML content documents larger than this many bytes.
+  - name: max_text_block_chars
+    type: integer
+    required: false
+    default: 100000
+    description: Maximum normalized text block size before truncation/failure according to output policy.
+  - name: pipeline_timeout_seconds
+    type: integer
+    required: false
+    default: 120
+    description: Overall extraction timeout budget for a single EPUB input.
+  - name: html_parse_timeout_seconds
+    type: integer
+    required: false
+    default: 20
+    description: Timeout budget for parsing a single HTML/XHTML document.
+  - name: max_archive_uncompressed_bytes
+    type: integer
+    required: false
+    default: 524288000
+    description: Maximum aggregate uncompressed bytes allowed across archive entries.
+  - name: max_archive_entry_count
+    type: integer
+    required: false
+    default: 10000
+    description: Maximum number of ZIP archive entries allowed before security rejection.
+  - name: max_archive_compression_ratio
+    type: integer
+    required: false
+    default: 100
+    description: Maximum per-entry compression ratio allowed to prevent ZIP bomb behavior.
+  - name: max_toc_depth
+    type: integer
+    required: false
+    default: 8
+    description: Maximum table-of-contents nesting depth retained in normalized output.
+  - name: max_diagnostic_count
+    type: integer
+    required: false
+    default: 1000
+    description: Maximum production diagnostics retained before diagnostic truncation policy applies.
+  - name: max_output_json_bytes
+    type: integer
+    required: false
+    default: 524288000
+    description: Maximum serialized output JSON size before output-size failure policy applies.
+  - name: include_debug
+    type: boolean
+    required: false
+    default: false
+    description: When true, include non-normative debug information; when false, debug output must be absent.
+  examples:
+  - examples/public_api_examples.py
+  docs_path: docs/api/models.md
+  docs_anchor: '<!-- api: EpubContentExtractorConfig -->'
+- id: EpubCanonicalTextBuildOptions
+  name: EpubCanonicalTextBuildOptions
+  kind: dataclass_or_model
+  import_path: epub_content_extractor.EpubCanonicalTextBuildOptions
+  stability: stable
+  description: Typed representation of canonical text builder options.
+  signature: EpubCanonicalTextBuildOptions(**fields)
+  fields:
+  - name: include_front_matter
+    type: boolean
+    required: false
+    default: false
+    description: Include extracted front matter in canonical text output.
+  - name: include_back_matter
+    type: boolean
+    required: false
+    default: false
+    description: Include extracted back matter in canonical text output.
+  - name: include_footnotes
+    type: boolean
+    required: false
+    default: false
+    description: Include extracted footnotes/endnotes in canonical text output.
+  - name: include_chapter_titles
+    type: boolean
+    required: false
+    default: true
+    description: Include chapter titles in canonical text output.
+  - name: include_section_titles
+    type: boolean
+    required: false
+    default: false
+    description: Include section titles in canonical text output.
+  examples:
+  - examples/public_api_examples.py
+  docs_path: docs/api/models.md
+  docs_anchor: '<!-- api: EpubCanonicalTextBuildOptions -->'
+- id: EpubContentExtractionResult
+  name: EpubContentExtractionResult
+  kind: dataclass_or_model
+  import_path: epub_content_extractor.EpubContentExtractionResult
+  stability: stable
+  description: Top-level extraction result model matching the official result JSON Schema.
+  signature: EpubContentExtractionResult(...)
+  fields:
+  - name: schema_version
+    type: schema-defined
+    required: true
+    default: null
+    description: Exact output schema version emitted by the extractor.
+  - name: status
+    type: schema-defined
+    required: true
+    default: null
+    description: 'Terminal extraction status: succeeded or failed.'
+  - name: book
+    type: schema-defined
+    required: false
+    default: null
+    description: Structured book payload; present only for succeeded extraction results.
+  - name: error
+    type: schema-defined
+    required: false
+    default: null
+    description: Structured failure payload; present only for failed extraction results.
+  - name: diagnostics
+    type: schema-defined
+    required: true
+    default: null
+    description: Ordered production diagnostics emitted during extraction.
+  - name: extraction
+    type: schema-defined
+    required: true
+    default: null
+    description: Stable extraction metadata such as source, timing, and implementation metadata.
+  - name: debug
+    type: schema-defined
+    required: false
+    default: null
+    description: Optional debug object, emitted only when include_debug is true.
+  examples:
+  - examples/how_to_start.py
+  - examples/error_handling.py
+  docs_path: docs/api/models.md
+  docs_anchor: '<!-- api: EpubContentExtractionResult -->'
+- id: EpubBook
+  name: EpubBook
+  kind: dataclass_or_model
+  import_path: epub_content_extractor.EpubBook
+  stability: stable
+  description: Structured extracted book model available on succeeded results.
+  signature: EpubBook(...)
+  fields:
+  - name: title
+    type: schema-defined
+    required: true
+    default: null
+    description: Normalized primary book title from EPUB metadata or title inference.
+  - name: subtitle
+    type: schema-defined
+    required: true
+    default: null
+    description: Normalized subtitle or null when not available.
+  - name: language
+    type: schema-defined
+    required: true
+    default: null
+    description: BCP-47-like language tag or null when unavailable.
+  - name: authors
+    type: schema-defined
+    required: true
+    default: null
+    description: Ordered normalized author list.
+  - name: contributors
+    type: schema-defined
+    required: true
+    default: null
+    description: Ordered normalized contributor list.
+  - name: metadata
+    type: schema-defined
+    required: true
+    default: null
+    description: Normalized metadata fields retained from package documents and Dublin Core data.
+  - name: front_matter
+    type: schema-defined
+    required: true
+    default: null
+    description: Ordered front-matter content sections.
+  - name: chapters
+    type: schema-defined
+    required: true
+    default: null
+    description: Ordered chapter content sections selected by spine and navigation rules.
+  - name: back_matter
+    type: schema-defined
+    required: true
+    default: null
+    description: Ordered back-matter content sections.
+  - name: footnotes
+    type: schema-defined
+    required: true
+    default: null
+    description: Ordered footnote/endnote records.
+  - name: table_of_contents
+    type: schema-defined
+    required: true
+    default: null
+    description: Normalized table of contents tree or flat navigation list.
+  - name: assets
+    type: schema-defined
+    required: true
+    default: null
+    description: Normalized non-text assets metadata such as images and referenced resources.
+  examples:
+  - examples/public_api_examples.py
+  docs_path: docs/api/models.md
+  docs_anchor: '<!-- api: EpubBook -->'
+- id: EpubDiagnostic
+  name: EpubDiagnostic
+  kind: dataclass_or_model
+  import_path: epub_content_extractor.EpubDiagnostic
+  stability: stable
+  description: Production diagnostic emitted for non-fatal losses, uncertainty, or quality notes.
+  signature: 'EpubDiagnostic(code: str, severity: str, message: str, ...)'
+  fields:
+  - name: code
+    type: schema-defined
+    required: true
+    default: null
+    description: Stable diagnostic or error code from the relevant registry.
+  - name: severity
+    type: schema-defined
+    required: true
+    default: null
+    description: Diagnostic severity from the registry severity enum.
+  - name: message
+    type: schema-defined
+    required: true
+    default: null
+    description: Human-readable stable diagnostic/error message.
+  - name: entity_type
+    type: schema-defined
+    required: false
+    default: null
+    description: Optional type of entity the diagnostic refers to.
+  - name: entity_id
+    type: schema-defined
+    required: false
+    default: null
+    description: Optional stable identifier of entity the diagnostic refers to.
+  - name: field
+    type: schema-defined
+    required: false
+    default: null
+    description: Optional output/config field the diagnostic refers to.
+  examples:
+  - examples/how_to_start.py
+  - examples/error_handling.py
+  docs_path: docs/api/models.md
+  docs_anchor: '<!-- api: EpubDiagnostic -->'
+- id: EpubExtractionError
+  name: EpubExtractionError
+  kind: dataclass_or_model
+  import_path: epub_content_extractor.EpubExtractionError
+  stability: stable
+  description: Structured failed-result error object.
+  signature: 'EpubExtractionError(code: str, message: str, recoverable: bool)'
+  fields:
+  - name: code
+    type: schema-defined
+    required: true
+    default: null
+    description: Stable diagnostic or error code from the relevant registry.
+  - name: message
+    type: schema-defined
+    required: true
+    default: null
+    description: Human-readable stable diagnostic/error message.
+  - name: recoverable
+    type: schema-defined
+    required: true
+    default: null
+    description: Whether the structured extraction error is recoverable by changing input/config.
+  examples:
+  - examples/error_handling.py
+  docs_path: docs/api/models.md
+  docs_anchor: '<!-- api: EpubExtractionError -->'
+- id: EpubContentExtractorError
+  name: EpubContentExtractorError
+  kind: exception
+  import_path: epub_content_extractor.EpubContentExtractorError
+  stability: stable
+  description: Base exception for unexpected implementation defects that prevent a structured result.
+  signature: 'EpubContentExtractorError(message: str)'
+  trigger_condition: Unexpected implementation defect or environment failure that prevents construction of a structured failed
+    result.
+  recovery: Treat as bug/operational failure; normal EPUB/config failures must be structured results.
+  examples:
+  - examples/error_handling.py
+  docs_path: docs/api/exceptions.md
+  docs_anchor: '<!-- api: EpubContentExtractorError -->'

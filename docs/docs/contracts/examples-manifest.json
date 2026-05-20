@@ -1,0 +1,179 @@
+{
+  "schema_version": "1.1.0",
+  "implementation_required_for_execution": true,
+  "examples": [
+    {
+      "id": "how_to_start",
+      "path": "examples/how_to_start.py",
+      "covers_api_ids": [
+        "extract_epub_content",
+        "EpubContentExtractionResult",
+        "EpubBook",
+        "EpubDiagnostic"
+      ],
+      "covers_api": [
+        {
+          "api_id": "extract_epub_content",
+          "coverage_mode": "direct_import_and_call",
+          "assertions": [
+            "function is imported from public API",
+            "result.status is asserted"
+          ]
+        },
+        {
+          "api_id": "EpubContentExtractionResult",
+          "coverage_mode": "returned_shape_field_assertion",
+          "assertions": [
+            "schema_version/status/diagnostics fields are asserted"
+          ]
+        },
+        {
+          "api_id": "EpubBook",
+          "coverage_mode": "returned_shape_field_assertion",
+          "assertions": [
+            "book.title and book.chapters are asserted on success"
+          ]
+        },
+        {
+          "api_id": "EpubDiagnostic",
+          "coverage_mode": "returned_shape_coverage",
+          "assertions": [
+            "diagnostics collection is asserted as a public result field"
+          ]
+        }
+      ],
+      "expected_execution_phase": "post_implementation",
+      "static_checks": [
+        "file_exists",
+        "python_syntax",
+        "uses_public_imports",
+        "has_asserts"
+      ]
+    },
+    {
+      "id": "public_api_examples",
+      "path": "examples/public_api_examples.py",
+      "covers_api_ids": [
+        "extract_epub_content",
+        "build_canonical_text",
+        "EpubContentExtractorConfig",
+        "EpubCanonicalTextBuildOptions",
+        "EpubBook"
+      ],
+      "covers_api": [
+        {
+          "api_id": "extract_epub_content",
+          "coverage_mode": "direct_import_and_call",
+          "assertions": [
+            "extractor is called with typed config"
+          ]
+        },
+        {
+          "api_id": "build_canonical_text",
+          "coverage_mode": "direct_import_and_call",
+          "assertions": [
+            "canonical text is a string and contains expected text"
+          ]
+        },
+        {
+          "api_id": "EpubContentExtractorConfig",
+          "coverage_mode": "direct_import_constructor",
+          "assertions": [
+            "config object is constructed with public fields"
+          ]
+        },
+        {
+          "api_id": "EpubCanonicalTextBuildOptions",
+          "coverage_mode": "direct_import_constructor",
+          "assertions": [
+            "canonical text options object is constructed with public fields"
+          ]
+        },
+        {
+          "api_id": "EpubBook",
+          "coverage_mode": "returned_shape_field_assertion",
+          "assertions": [
+            "book/chapter fields are asserted from succeeded result"
+          ]
+        }
+      ],
+      "expected_execution_phase": "post_implementation",
+      "static_checks": [
+        "file_exists",
+        "python_syntax",
+        "uses_public_imports",
+        "has_asserts"
+      ]
+    },
+    {
+      "id": "batch_usage",
+      "path": "examples/batch_usage.py",
+      "covers_api_ids": [
+        "extract_epub_content",
+        "build_canonical_text"
+      ],
+      "covers_api": [
+        {
+          "api_id": "extract_epub_content",
+          "coverage_mode": "direct_import_and_call",
+          "assertions": [
+            "multiple inputs are processed through public API"
+          ]
+        },
+        {
+          "api_id": "build_canonical_text",
+          "coverage_mode": "direct_import_and_call",
+          "assertions": [
+            "canonical text is produced only for succeeded results"
+          ]
+        }
+      ],
+      "expected_execution_phase": "post_implementation",
+      "static_checks": [
+        "file_exists",
+        "python_syntax",
+        "uses_public_imports",
+        "has_asserts"
+      ]
+    },
+    {
+      "id": "error_handling",
+      "path": "examples/error_handling.py",
+      "covers_api_ids": [
+        "extract_epub_content",
+        "EpubExtractionError",
+        "EpubContentExtractorError"
+      ],
+      "covers_api": [
+        {
+          "api_id": "extract_epub_content",
+          "coverage_mode": "direct_import_and_call",
+          "assertions": [
+            "failed result is returned for normal invalid input"
+          ]
+        },
+        {
+          "api_id": "EpubExtractionError",
+          "coverage_mode": "returned_shape_field_assertion",
+          "assertions": [
+            "error.code/message/recoverable are asserted"
+          ]
+        },
+        {
+          "api_id": "EpubContentExtractorError",
+          "coverage_mode": "direct_import_exception_handling",
+          "assertions": [
+            "base exception is imported and reserved for unexpected defects"
+          ]
+        }
+      ],
+      "expected_execution_phase": "post_implementation",
+      "static_checks": [
+        "file_exists",
+        "python_syntax",
+        "uses_public_imports",
+        "has_asserts"
+      ]
+    }
+  ]
+}

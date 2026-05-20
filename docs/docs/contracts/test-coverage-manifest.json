@@ -1,0 +1,161 @@
+{
+  "schema_version": "1.0.0",
+  "implementation_required_for_execution": true,
+  "tests": [
+    {
+      "test_id": "TC-CFG-001",
+      "phase": "post_implementation",
+      "priority": "P0",
+      "requirement": "docs/schemas/epub_content_extractor_config.v3.0.schema.json",
+      "fixture_id": "config_unknown_field",
+      "input_fixture": "docs/testing/fixtures/input/config_unknown_field.fixture.json",
+      "config_fixture": "docs/testing/fixtures/config/config_unknown_field.config.json",
+      "expected_output": "docs/testing/fixtures/expected/config_unknown_field.expected.normalized.json",
+      "diagnostics": [],
+      "assertions": [
+        "status == failed",
+        "error.code == invalid_config",
+        "config validation occurs before input path validation"
+      ],
+      "normalization_rules": [
+        "normalize timestamps",
+        "normalize durations",
+        "normalize machine-local source paths"
+      ],
+      "pass_fail_criteria": "normalized actual output must equal the expected normalized JSON and validate against the result schema"
+    },
+    {
+      "test_id": "TC-IO-001",
+      "phase": "post_implementation",
+      "priority": "P0",
+      "requirement": "docs/contracts/error-registry.json",
+      "fixture_id": "failure_plain_text_epub_extension",
+      "input_fixture": "docs/testing/fixtures/input/failure_plain_text_epub_extension.fixture.json",
+      "config_fixture": "docs/testing/fixtures/config/failure_plain_text_epub_extension.config.json",
+      "expected_output": "docs/testing/fixtures/expected/failure_plain_text_epub_extension.expected.normalized.json",
+      "diagnostics": [],
+      "assertions": [
+        "status == failed",
+        "error.code is a stable archive/package-readability error",
+        "book is absent"
+      ],
+      "normalization_rules": [
+        "normalize timestamps",
+        "normalize durations",
+        "normalize machine-local source paths"
+      ],
+      "pass_fail_criteria": "normalized actual output must equal the expected normalized JSON and validate against the result schema"
+    },
+    {
+      "test_id": "TC-IO-002",
+      "phase": "post_implementation",
+      "priority": "P0",
+      "requirement": "docs/contracts/error-registry.json",
+      "fixture_id": "failure_valid_zip_not_epub",
+      "input_fixture": "docs/testing/fixtures/input/failure_valid_zip_not_epub.fixture.json",
+      "config_fixture": "docs/testing/fixtures/config/failure_valid_zip_not_epub.config.json",
+      "expected_output": "docs/testing/fixtures/expected/failure_valid_zip_not_epub.expected.normalized.json",
+      "diagnostics": [],
+      "assertions": [
+        "status == failed",
+        "error.code == epub_manifest_unreadable",
+        "book is absent"
+      ],
+      "normalization_rules": [
+        "normalize timestamps",
+        "normalize durations",
+        "normalize machine-local source paths"
+      ],
+      "pass_fail_criteria": "normalized actual output must equal the expected normalized JSON and validate against the result schema"
+    },
+    {
+      "test_id": "TC-LIMIT-001",
+      "phase": "post_implementation",
+      "priority": "P0",
+      "requirement": "docs/input-output-contract.md#no-readable-content-policy",
+      "fixture_id": "limits_no_readable_content",
+      "input_fixture": "docs/testing/fixtures/input/limits_no_readable_content.fixture.json",
+      "config_fixture": "docs/testing/fixtures/config/limits_no_readable_content.config.json",
+      "expected_output": "docs/testing/fixtures/expected/limits_no_readable_content.expected.normalized.json",
+      "diagnostics": [],
+      "assertions": [
+        "status == failed",
+        "error.code == no_readable_content",
+        "diagnostics explain empty/spine-only content"
+      ],
+      "normalization_rules": [
+        "normalize timestamps",
+        "normalize durations",
+        "normalize machine-local source paths"
+      ],
+      "pass_fail_criteria": "normalized actual output must equal the expected normalized JSON and validate against the result schema"
+    },
+    {
+      "test_id": "TC-SEC-001",
+      "phase": "post_implementation",
+      "priority": "P0",
+      "requirement": "docs/security-archive-policy.md#path-traversal-and-absolute-path-policy",
+      "fixture_id": "security_path_traversal",
+      "input_fixture": "docs/testing/fixtures/input/security_path_traversal.fixture.json",
+      "config_fixture": "docs/testing/fixtures/config/security_path_traversal.config.json",
+      "expected_output": "docs/testing/fixtures/expected/security_path_traversal.expected.normalized.json",
+      "diagnostics": [],
+      "assertions": [
+        "status == failed",
+        "error.code == epub_archive_security_violation",
+        "archive validation runs before OPF parsing"
+      ],
+      "normalization_rules": [
+        "normalize timestamps",
+        "normalize durations",
+        "normalize machine-local source paths"
+      ],
+      "pass_fail_criteria": "normalized actual output must equal the expected normalized JSON and validate against the result schema"
+    },
+    {
+      "test_id": "TC-OUT-001",
+      "phase": "post_implementation",
+      "priority": "P0",
+      "requirement": "docs/schemas/epub_content_extractor.v3.0.schema.json",
+      "fixture_id": "success_complex_valid",
+      "input_fixture": "docs/testing/fixtures/input/success_complex_valid.fixture.json",
+      "config_fixture": "docs/testing/fixtures/config/success_complex_valid.config.json",
+      "expected_output": "docs/testing/fixtures/expected/success_complex_valid.expected.normalized.json",
+      "diagnostics": [],
+      "assertions": [
+        "status == succeeded",
+        "all ordered content collections are deterministic",
+        "output validates against result schema"
+      ],
+      "normalization_rules": [
+        "normalize timestamps",
+        "normalize durations",
+        "normalize machine-local source paths"
+      ],
+      "pass_fail_criteria": "normalized actual output must equal the expected normalized JSON and validate against the result schema"
+    },
+    {
+      "test_id": "TC-API-001",
+      "phase": "post_implementation",
+      "priority": "P0",
+      "requirement": "docs/contracts/api-contract.yaml#/public_api/extract_epub_content",
+      "fixture_id": "success_minimal_valid",
+      "input_fixture": "docs/testing/fixtures/input/success_minimal_valid.fixture.json",
+      "config_fixture": "docs/testing/fixtures/config/success_minimal_valid.config.json",
+      "expected_output": "docs/testing/fixtures/expected/success_minimal_valid.expected.normalized.json",
+      "diagnostics": [],
+      "assertions": [
+        "status == succeeded",
+        "schema_version == epub_content_extractor.v3.0",
+        "book is present",
+        "output validates against result schema"
+      ],
+      "normalization_rules": [
+        "normalize timestamps",
+        "normalize durations",
+        "normalize machine-local source paths"
+      ],
+      "pass_fail_criteria": "normalized actual output must equal the expected normalized JSON and validate against the result schema"
+    }
+  ]
+}

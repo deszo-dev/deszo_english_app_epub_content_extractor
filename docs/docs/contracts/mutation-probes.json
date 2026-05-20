@@ -1,0 +1,116 @@
+{
+  "schema_version": "1.1.0",
+  "probes": [
+    {
+      "id": "PROBE-MD-PATH-ALL",
+      "priority": "P1.5",
+      "phase": "static_docs",
+      "target": "docs/index.md",
+      "mutation": "Append a missing relative Markdown link to a normative Markdown file.",
+      "expected_failure": "validate_markdown_paths fails with file, line and missing path.",
+      "validator_command": "python tools/validate_markdown_paths.py",
+      "executable": true,
+      "implementation_required": false
+    },
+    {
+      "id": "PROBE-MANIFEST-HASH",
+      "priority": "P1",
+      "phase": "static_docs",
+      "target": "docs/testing/fixtures/config/success_minimal_valid.config.json",
+      "mutation": "Change one byte in a manifest-pinned fixture without updating hash.",
+      "expected_failure": "validate_manifest_hashes fails with sha256 mismatch.",
+      "validator_command": "python tools/validate_manifest_hashes.py",
+      "executable": true,
+      "implementation_required": false
+    },
+    {
+      "id": "PROBE-API-CONTRACT-ID",
+      "priority": "P1",
+      "phase": "static_docs",
+      "target": "docs/contracts/examples-manifest.json",
+      "mutation": "Reference unknown API ID from examples-manifest.json.",
+      "expected_failure": "validate_examples_metadata fails.",
+      "validator_command": "python tools/validate_examples_metadata.py",
+      "executable": true,
+      "implementation_required": false
+    },
+    {
+      "id": "PROBE-EXAMPLE-NO-ASSERT",
+      "priority": "P1",
+      "phase": "static_docs",
+      "target": "examples/how_to_start.py",
+      "mutation": "Remove assert statements from a public API example.",
+      "expected_failure": "validate_examples_metadata fails unless no_assert_required is explicit.",
+      "validator_command": "python tools/validate_examples_metadata.py",
+      "executable": true,
+      "implementation_required": false
+    },
+    {
+      "id": "PROBE-API-DOCS-ANCHOR",
+      "priority": "P1",
+      "phase": "static_docs",
+      "target": "docs/contracts/api-contract.yaml",
+      "mutation": "Remove docs_anchor from one public API entry.",
+      "expected_failure": "validate_contract_shape fails because every API entry must have valid docs_path/docs_anchor.",
+      "validator_command": "python tools/validate_contract_shape.py",
+      "executable": true,
+      "implementation_required": false
+    },
+    {
+      "id": "PROBE-MANIFEST-SCHEMA",
+      "priority": "P1",
+      "phase": "static_docs",
+      "target": "docs/contracts/docs-manifest.json",
+      "mutation": "Remove required package field from docs-manifest.json.",
+      "expected_failure": "validate_static_docs_package fails jsonschema validation.",
+      "validator_command": "python tools/validate_static_docs_package.py",
+      "executable": true,
+      "implementation_required": false
+    },
+    {
+      "id": "PROBE-TEST-COVERAGE-FIXTURE",
+      "priority": "P1",
+      "phase": "static_docs",
+      "target": "docs/contracts/test-coverage-manifest.json",
+      "mutation": "Remove coverage entry for one fixture.",
+      "expected_failure": "validate_static_docs_package fails fixture-to-test reverse coverage.",
+      "validator_command": "python tools/validate_static_docs_package.py",
+      "executable": true,
+      "implementation_required": false
+    },
+    {
+      "id": "PROBE-DIAGNOSTICS-REGISTRY-SCHEMA",
+      "priority": "P1",
+      "phase": "static_docs",
+      "target": "docs/contracts/diagnostics-registry.json",
+      "mutation": "Remove severity from one diagnostic entry.",
+      "expected_failure": "validate_static_docs_package fails registry schema/minimal diagnostic validation.",
+      "validator_command": "python tools/validate_static_docs_package.py",
+      "executable": true,
+      "implementation_required": false
+    },
+    {
+      "id": "PROBE-EXAMPLE-COVERAGE-MODE",
+      "priority": "P1",
+      "phase": "static_docs",
+      "target": "docs/contracts/examples-manifest.json",
+      "mutation": "Set an invalid example coverage_mode.",
+      "expected_failure": "validate_examples_metadata fails coverage-mode validation.",
+      "validator_command": "python tools/validate_examples_metadata.py",
+      "executable": true,
+      "implementation_required": false
+    },
+    {
+      "id": "PROBE-IMPLEMENTATION-SIGNATURE-DRIFT",
+      "priority": "post_implementation",
+      "phase": "post_implementation",
+      "target": "implementation package",
+      "mutation": "Change implementation method signature after code exists.",
+      "expected_failure": "validate_against_implementation fails.",
+      "validator_command": "python tools/validate_against_implementation.py --contract docs/contracts/api-contract.yaml",
+      "executable": false,
+      "implementation_required": true,
+      "proof_policy": "Skipped during static documentation review because implementation is intentionally absent."
+    }
+  ]
+}

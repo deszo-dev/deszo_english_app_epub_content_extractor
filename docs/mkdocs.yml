@@ -1,0 +1,55 @@
+site_name: epub_content_extractor Documentation
+site_description: Contract-first documentation for epub_content_extractor
+docs_dir: docs
+site_dir: site
+strict: true
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.expand
+    - content.code.copy
+    - search.suggest
+
+nav:
+  - Overview: index.md
+  - How to Start: how-to-start.md
+  - View HTML Docs: html-viewing-guide.md
+  - Source of Truth: source-of-truth.md
+  - Public API: public-api.md
+  - API Reference:
+      - Overview: api/index.md
+      - Classes: api/classes.md
+      - Functions: api/functions.md
+      - Models: api/models.md
+      - Exceptions: api/exceptions.md
+  - Architecture: architecture.md
+  - Configuration: configuration.md
+  - Input / Output Contract: input-output-contract.md
+  - Archive Security Policy: security-archive-policy.md
+  - Diagnostics: diagnostics.md
+  - Examples:
+      - Overview: examples.md
+      - Examples Index: examples/index.md
+      - How to Start Example: examples/how_to_start.md
+      - Public API Examples: examples/public_api_examples.md
+      - Batch Usage: examples/batch_usage.md
+      - Error Handling: examples/error_handling.md
+  - Testing Guide: testing-guide.md
+  - Validation Guide: validation-guide.md
+  - Post-Implementation Validation: post-implementation-validation.md
+  - Compatibility: compatibility.md
+  - Static Readiness: contracts/static-readiness.md
+  - Changelog: changelog.md
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - toc:
+      permalink: true
+  - tables
+  - fenced_code
+  - pymdownx.superfences

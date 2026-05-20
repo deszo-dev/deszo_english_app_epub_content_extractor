@@ -1,0 +1,59 @@
+{
+  "schema_version": "1.0.0",
+  "commands": [
+    {
+      "id": "validate-docs-static",
+      "phase": "static_docs",
+      "command": "python tools/validate_static_docs_package.py",
+      "imports_implementation": false
+    },
+    {
+      "id": "validate-docs-paths",
+      "phase": "static_docs",
+      "command": "python tools/validate_markdown_paths.py",
+      "imports_implementation": false
+    },
+    {
+      "id": "validate-manifest-hashes",
+      "phase": "static_docs",
+      "command": "python tools/validate_manifest_hashes.py",
+      "imports_implementation": false
+    },
+    {
+      "id": "validate-examples-metadata",
+      "phase": "static_docs",
+      "command": "python tools/validate_examples_metadata.py",
+      "imports_implementation": false
+    },
+    {
+      "id": "validate-contract-shape",
+      "phase": "static_docs",
+      "command": "python tools/validate_contract_shape.py",
+      "imports_implementation": false
+    },
+    {
+      "id": "validate-mutation-probes",
+      "phase": "static_docs",
+      "command": "python tools/validate_mutation_probe_manifest.py",
+      "imports_implementation": false
+    },
+    {
+      "id": "run-mutation-probes",
+      "phase": "static_docs",
+      "command": "python tools/run_mutation_probes.py",
+      "imports_implementation": false
+    },
+    {
+      "id": "docs-html",
+      "phase": "static_docs",
+      "command": "mkdocs build --strict",
+      "imports_implementation": false
+    },
+    {
+      "id": "validate-against-implementation",
+      "phase": "post_implementation",
+      "command": "python tools/validate_against_implementation.py --contract docs/contracts/api-contract.yaml",
+      "imports_implementation": true
+    }
+  ]
+}

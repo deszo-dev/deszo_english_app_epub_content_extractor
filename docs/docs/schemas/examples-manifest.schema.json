@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Examples Manifest Schema",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "implementation_required_for_execution",
+    "examples"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string"
+    },
+    "implementation_required_for_execution": {
+      "type": "boolean"
+    },
+    "examples": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "path",
+          "expected_execution_phase",
+          "static_checks"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string",
+            "pattern": "^examples/.+\\.py$"
+          },
+          "covers_api_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "covers_api": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": [
+                "api_id",
+                "coverage_mode"
+              ],
+              "properties": {
+                "api_id": {
+                  "type": "string"
+                },
+                "coverage_mode": {
+                  "enum": [
+                    "direct_import_and_call",
+                    "direct_import_constructor",
+                    "direct_import_exception_handling",
+                    "returned_shape_field_assertion",
+                    "returned_shape_coverage",
+                    "field_assertion_coverage"
+                  ]
+                },
+                "assertions": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "additionalProperties": true
+            }
+          },
+          "expected_execution_phase": {
+            "enum": [
+              "static_docs",
+              "post_implementation"
+            ]
+          },
+          "static_checks": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "no_assert_required": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": true,
+        "anyOf": [
+          {
+            "required": [
+              "covers_api"
+            ]
+          },
+          {
+            "required": [
+              "covers_api_ids"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "additionalProperties": false
+}

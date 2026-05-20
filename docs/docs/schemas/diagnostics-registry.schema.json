@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Diagnostics Registry Wrapper Schema",
+  "type": "object",
+  "required": [
+    "registry_version",
+    "diagnostics"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "registry_version": {
+      "type": "string"
+    },
+    "diagnostics": {
+      "type": "array",
+      "minItems": 1
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Fixture Manifest Schema",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "fixtures"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "schema_version": {
+      "type": "string"
+    },
+    "implementation_required_for_execution": {
+      "type": "boolean"
+    },
+    "fixtures": {
+      "type": "array",
+      "minItems": 1
+    }
+  }
+}

@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Test Coverage Manifest Schema",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "implementation_required_for_execution",
+    "tests"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string"
+    },
+    "implementation_required_for_execution": {
+      "type": "boolean"
+    },
+    "tests": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "test_id",
+          "phase",
+          "priority",
+          "requirement",
+          "fixture_id",
+          "input_fixture",
+          "config_fixture",
+          "expected_output",
+          "assertions",
+          "normalization_rules",
+          "pass_fail_criteria"
+        ],
+        "properties": {
+          "test_id": {
+            "type": "string",
+            "pattern": "^TC-[A-Z]+-[0-9]{3}$"
+          },
+          "phase": {
+            "enum": [
+              "static_docs",
+              "post_implementation"
+            ]
+          },
+          "priority": {
+            "enum": [
+              "P0",
+              "P1",
+              "P2"
+            ]
+          },
+          "requirement": {
+            "type": "string"
+          },
+          "fixture_id": {
+            "type": "string"
+          },
+          "input_fixture": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "config_fixture": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "expected_output": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "diagnostics": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "assertions": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          },
+          "normalization_rules": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "pass_fail_criteria": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": false
+}

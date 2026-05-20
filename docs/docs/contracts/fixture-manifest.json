@@ -1,0 +1,174 @@
+{
+  "schema_version": "1.0.0",
+  "implementation_required_for_execution": true,
+  "fixtures": [
+    {
+      "id": "config_unknown_field",
+      "phase": "post_implementation",
+      "files": [
+        {
+          "kind": "input_source_spec",
+          "path": "docs/testing/fixtures/input/config_unknown_field.fixture.json",
+          "bytes": 1210,
+          "sha256": "5b71c71b524fa3e8b4e4ce86a14917b5e7655e13c4c2e03b1984ff9cd9661971"
+        },
+        {
+          "kind": "config",
+          "path": "docs/testing/fixtures/config/config_unknown_field.config.json",
+          "bytes": 28,
+          "sha256": "9ec10409e959a1f7c15428359f2c2d8b2615d3695751505da68c3d0044c230a2"
+        },
+        {
+          "kind": "expected",
+          "path": "docs/testing/fixtures/expected/config_unknown_field.expected.normalized.json",
+          "bytes": 1524,
+          "sha256": "f7c05380bde727b70db466086ca12d02ef6227b916545f89e1f23e2f2e836615"
+        }
+      ]
+    },
+    {
+      "id": "failure_plain_text_epub_extension",
+      "phase": "post_implementation",
+      "files": [
+        {
+          "kind": "input_source_spec",
+          "path": "docs/testing/fixtures/input/failure_plain_text_epub_extension.fixture.json",
+          "bytes": 1410,
+          "sha256": "e1717de981de3b1f9b1034fc3e61a35a510faa4f67fe86e4d728bf872f7e183b"
+        },
+        {
+          "kind": "config",
+          "path": "docs/testing/fixtures/config/failure_plain_text_epub_extension.config.json",
+          "bytes": 3,
+          "sha256": "ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356"
+        },
+        {
+          "kind": "expected",
+          "path": "docs/testing/fixtures/expected/failure_plain_text_epub_extension.expected.normalized.json",
+          "bytes": 1507,
+          "sha256": "737bf299a14e730747665fad6668f1134aafb43a713824b86e87f6e129d71d1a"
+        }
+      ]
+    },
+    {
+      "id": "failure_valid_zip_not_epub",
+      "phase": "post_implementation",
+      "files": [
+        {
+          "kind": "input_source_spec",
+          "path": "docs/testing/fixtures/input/failure_valid_zip_not_epub.fixture.json",
+          "bytes": 1536,
+          "sha256": "300a3806d964dfc9e0b67a6a3c8c1d6f82761ebdcb813bd56c0945c31ed83308"
+        },
+        {
+          "kind": "config",
+          "path": "docs/testing/fixtures/config/failure_valid_zip_not_epub.config.json",
+          "bytes": 3,
+          "sha256": "ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356"
+        },
+        {
+          "kind": "expected",
+          "path": "docs/testing/fixtures/expected/failure_valid_zip_not_epub.expected.normalized.json",
+          "bytes": 1513,
+          "sha256": "008f4f32d4ade90eafa51c05d4c5742a34160fe64429d2fe4931bcb286daa91a"
+        }
+      ]
+    },
+    {
+      "id": "limits_no_readable_content",
+      "phase": "post_implementation",
+      "files": [
+        {
+          "kind": "input_source_spec",
+          "path": "docs/testing/fixtures/input/limits_no_readable_content.fixture.json",
+          "bytes": 3661,
+          "sha256": "caa7babe8083556c77562f165a5c192d62fd013b904f3a764092bcb28a00ae0a"
+        },
+        {
+          "kind": "config",
+          "path": "docs/testing/fixtures/config/limits_no_readable_content.config.json",
+          "bytes": 3,
+          "sha256": "ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356"
+        },
+        {
+          "kind": "expected",
+          "path": "docs/testing/fixtures/expected/limits_no_readable_content.expected.normalized.json",
+          "bytes": 1723,
+          "sha256": "baa622282129445be425a508cd29de85681b2eda9174e6b5a3ceab489f45bf5a"
+        }
+      ]
+    },
+    {
+      "id": "security_path_traversal",
+      "phase": "post_implementation",
+      "files": [
+        {
+          "kind": "input_source_spec",
+          "path": "docs/testing/fixtures/input/security_path_traversal.fixture.json",
+          "bytes": 1770,
+          "sha256": "20c0d39059de00af9dfc07b35b7b8d83184192a56f020e8bf85d7eb778f0d6a8"
+        },
+        {
+          "kind": "config",
+          "path": "docs/testing/fixtures/config/security_path_traversal.config.json",
+          "bytes": 3,
+          "sha256": "ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356"
+        },
+        {
+          "kind": "expected",
+          "path": "docs/testing/fixtures/expected/security_path_traversal.expected.normalized.json",
+          "bytes": 1513,
+          "sha256": "72790e6b02569828468dad923f3f3406dc6b7cf03278f8322cbe151f05abacf2"
+        }
+      ]
+    },
+    {
+      "id": "success_complex_valid",
+      "phase": "post_implementation",
+      "files": [
+        {
+          "kind": "input_source_spec",
+          "path": "docs/testing/fixtures/input/success_complex_valid.fixture.json",
+          "bytes": 6541,
+          "sha256": "1c87e897667e64273ec74bb464b701fc3ecf1017a5497957136b93dd6c0564b5"
+        },
+        {
+          "kind": "config",
+          "path": "docs/testing/fixtures/config/success_complex_valid.config.json",
+          "bytes": 3,
+          "sha256": "ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356"
+        },
+        {
+          "kind": "expected",
+          "path": "docs/testing/fixtures/expected/success_complex_valid.expected.normalized.json",
+          "bytes": 5951,
+          "sha256": "d6238de8b02e03f850b95c0a7923b19b6a355b9242f0871b1cbcf9461cda1b8a"
+        }
+      ]
+    },
+    {
+      "id": "success_minimal_valid",
+      "phase": "post_implementation",
+      "files": [
+        {
+          "kind": "input_source_spec",
+          "path": "docs/testing/fixtures/input/success_minimal_valid.fixture.json",
+          "bytes": 3667,
+          "sha256": "e404c753fd40d50d6d69c6c96533a12c9d71747102cc06be5e23c2046564db58"
+        },
+        {
+          "kind": "config",
+          "path": "docs/testing/fixtures/config/success_minimal_valid.config.json",
+          "bytes": 3,
+          "sha256": "ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356"
+        },
+        {
+          "kind": "expected",
+          "path": "docs/testing/fixtures/expected/success_minimal_valid.expected.normalized.json",
+          "bytes": 2826,
+          "sha256": "7acf8c42bd811bc146c632bf93dc1963508e76c64b839fd3334430f2c4edc2f1"
+        }
+      ]
+    }
+  ]
+}
